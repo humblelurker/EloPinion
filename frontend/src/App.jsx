@@ -1,135 +1,181 @@
+/* frontend/src/App.jsx */
 import { useState } from 'react';
 import Fuse from 'fuse.js';
 
 function App() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [reviewText, setReviewText] = useState("");
-  const [rating, setRating] = useState(3);
+  /* ----------  ESTADO  ---------- */
+  const [searchTerm, setSearchTerm] = useState('');
+  const [reviewText, setReviewText]   = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [compareProduct, setCompareProduct] = useState(null);
-  const [status, setStatus] = useState("");
+  const [compareProduct,  setCompareProduct]  = useState(null);
+  const [preferred,       setPreferred]       = useState(null);   // "A" o "B"
+  const [status,          setStatus]          = useState('');
 
+  /* ----------  DATA DE EJEMPLO  ---------- */
   const brandsWithScores = [
-    { id: 1, name: "Coca Cola", elo: 1500, reviews: "/reviews/coca-cola" },
-    { id: 2, name: "Pepsi", elo: 1450, reviews: "/reviews/pepsi" },
-    { id: 3, name: "Dr Pepper", elo: 1420, reviews: "/reviews/dr-pepper" },
+    { id: 1, name: 'Coca Cola', elo: 1500, reviews: '/reviews/coca-cola' },
+    { id: 2, name: 'Pepsi',      elo: 1450, reviews: '/reviews/pepsi'     },
+    { id: 3, name: 'Dr Pepper',  elo: 1420, reviews: '/reviews/dr-pepper' },
   ];
 
-  const fuse = new Fuse(brandsWithScores, {
-    keys: ['name'],
-    threshold: 0.3,
-  });
-
+  /* ----------  BÚSQUEDA DIFUSA  ---------- */
+  const fuse = new Fuse(brandsWithScores, { keys: ['name'], threshold: 0.3 });
   const filteredBrands = searchTerm
-    ? fuse.search(searchTerm).map(result => result.item)
+    ? fuse.search(searchTerm).map(r => r.item)
     : brandsWithScores;
 
+  /* ----------  ENVÍO AL BACKEND  ---------- */
   const handleSubmitReview = async () => {
-    if (!selectedProduct || !compareProduct) {
-      setStatus("Debes seleccionar el producto y el de comparación.");
+    if (!selectedProduct || !compareProduct || !preferred) {
+      setStatus('Debes elegir ambos productos y marcar tu preferido.');
       return;
     }
 
     const reviewData = {
-      product_id: selectedProduct.id,
-      compare_product_id: compareProduct.id,
-      review_text: reviewText,
-      rating: rating,
+      product_a_id: selectedProduct.id,
+      product_b_id: compareProduct.id,
+      preferred_id: preferred === 'A' ? selectedProduct.id : compareProduct.id,
+      justification: reviewText,
     };
-
-    // Depuración: Verificar los datos que estamos enviando
-    console.log("Datos de reseña que se envían:", reviewData);
+    console.log('Datos enviados:', reviewData);
 
     try {
-      const response = await fetch('http://localhost:8000/api/submit-review/', {
+      const resp  = await fetch('http://localhost:8000/api/submit-review/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(reviewData),
       });
-
-      const data = await response.json();
-      console.log("Respuesta del backend:", data);
-
-      if (data.status === 'reseña procesada') {
-        setStatus("✅ Reseña procesada y moderada");
-      } else {
-        setStatus("❌ Error en el envío");
-      }
-    } catch (error) {
-      console.error("Error al enviar la reseña:", error);
-      setStatus("❌ Error al enviar la reseña");
+      const data  = await resp.json();
+      setStatus(data.status === 'ok' ? '✅ Reseña enviada' : '❌ Error');
+    } catch (err) {
+      console.error(err);
+      setStatus('❌ Error al enviar la reseña');
     }
   };
 
-  return (
-    <div className="container">
-      <h1 className="text-3xl font-bold">EloPinion</h1>
+  console.log('App render OK');
 
+  /* ----------  UI  ---------- */
+  return (
+    <div className="container" style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
+      {/* BUSCADOR */}
       <input
         type="text"
-        className="search-bar"
-        placeholder="Buscar..."
+        placeholder="Buscar producto…"
         value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        onChange={e => setSearchTerm(e.target.value)}
+        style={{ padding: '.5rem', width: '100%', maxWidth: '400px' }}
       />
 
-      <div className="rectangles">
-        {filteredBrands.map((brand) => (
+      {/* LISTA DE PRODUCTOS */}
+      <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+        {filteredBrands.map(brand => (
           <div
             key={brand.id}
-            className="rectangle"
-            onClick={() => setSelectedProduct(brand)}
+            style={{
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              padding: '0.75rem',
+              cursor: 'pointer',
+              minWidth: '140px',
+            }}
+            onClick={() => {
+              setSelectedProduct(brand);
+              setCompareProduct(null);
+              setPreferred(null);
+              setReviewText('');
+              setStatus('');
+            }}
           >
-            <div>{brand.name}</div>
-            <div>Puntos: {brand.elo}</div>
-            <a href={brand.reviews}>Ver historial de reseñas</a>
+            <strong>{brand.name}</strong>
+            <div>Elo: {brand.elo}</div>
           </div>
         ))}
       </div>
 
+      {/* FORMULARIO DE RESEÑA */}
       {selectedProduct && (
-        <div className="review-form">
-          <h2>Escribir reseña para {selectedProduct.name}</h2>
-          <label>Comparar con:</label>
+        <div className="review-form" style={{ marginTop: '2rem', maxWidth: '500px' }}>
+          <h2>
+            Comparar <em>{selectedProduct.name}</em> con otro producto y elegir favorito
+          </h2>
+
+          {/* SELECT DE PRODUCTO B */}
+          <label style={{ display: 'block', marginTop: '1rem' }}>Comparar con:</label>
           <select
-            value={compareProduct?.id || ""}
-            onChange={(e) => {
-              const brand = brandsWithScores.find(b => b.id === parseInt(e.target.value));
-              setCompareProduct(brand);
-            }}
+            value={compareProduct?.id || ''}
+            onChange={e =>
+              setCompareProduct(
+                brandsWithScores.find(b => b.id === parseInt(e.target.value))
+              )
+            }
+            style={{ padding: '.4rem', width: '100%' }}
           >
             <option value="">-- Seleccionar --</option>
             {brandsWithScores
               .filter(b => b.id !== selectedProduct.id)
               .map(b => (
-                <option key={b.id} value={b.id}>{b.name}</option>
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
               ))}
           </select>
 
+          {/* JUSTIFICACIÓN */}
           <textarea
-            placeholder="Escribe tu reseña aquí..."
+            placeholder="Justificación (opcional)…"
             value={reviewText}
-            onChange={(e) => setReviewText(e.target.value)}
+            onChange={e => setReviewText(e.target.value)}
+            rows={3}
+            style={{ width: '100%', marginTop: '1rem', padding: '.5rem' }}
           />
 
-          <div className="rating-container">
-            <label>Calificación (1 a 5):</label>
-            <input
-              type="number"
-              min={1}
-              max={5}
-              value={rating}
-              onChange={(e) => setRating(Number(e.target.value))}
-            />
-          </div>
+          {/* PREFERENCIA */}
+          {compareProduct && (
+            <>
+              <label style={{ display: 'block', marginTop: '1rem' }}>Prefiero:</label>
+              <div style={{ display: 'flex', gap: '2rem', marginTop: '.5rem' }}>
+                <label>
+                  <input
+                    type="radio"
+                    name="preferred"
+                    value="A"
+                    checked={preferred === 'A'}
+                    onChange={() => setPreferred('A')}
+                  />{' '}
+                  {selectedProduct.name}
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="preferred"
+                    value="B"
+                    checked={preferred === 'B'}
+                    onChange={() => setPreferred('B')}
+                  />{' '}
+                  {compareProduct.name}
+                </label>
+              </div>
+            </>
+          )}
 
-          <button className="submit-button" onClick={handleSubmitReview}>
+          {/* BOTÓN Y ESTADO */}
+          <button
+            onClick={handleSubmitReview}
+            style={{
+              marginTop: '1rem',
+              padding: '.6rem 1.2rem',
+              background: '#2563eb',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+          >
             Enviar reseña
           </button>
 
-          {status && <p>{status}</p>}
+          {status && <p style={{ marginTop: '.75rem' }}>{status}</p>}
         </div>
       )}
     </div>

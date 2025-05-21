@@ -1,67 +1,78 @@
 from django.db import models
 from django.contrib.auth.models import User
+from math import pow
+
+K_FACTOR = 32  # Constante para ajustar la sensibilidad con la que cambian los puntajes ELO
 
 class Product(models.Model):
     name = models.CharField(max_length=255)
-    elo_score = models.IntegerField(default=1500)
+    elo_score = models.FloatField(default=1500)
 
     def __str__(self):
         return self.name
 
+
 class Review(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product_a = models.ForeignKey(
+        Product, related_name="reviews_as_a", on_delete=models.CASCADE
+    )
+    product_b = models.ForeignKey(
+        Product, related_name="reviews_as_b", on_delete=models.CASCADE
+    )
+
+    # Ganador de la “partida”
+    preferred_product = models.ForeignKey(
+        Product, related_name="wins", on_delete=models.CASCADE
+    )
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    title = models.CharField(max_length=255)
-    body = models.TextField()
-    rating = models.IntegerField(choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')])
-    status = models.CharField(max_length=255, default='Pendiente de moderación')
+    justification = models.TextField(blank=True)
+    status = models.CharField(
+        max_length=32,
+        choices=[("Pendiente", "Pendiente"), ("Aprobada", "Aprobada"), ("Rechazada", "Rechazada")],
+        default="Pendiente",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        constraints = [
+            # impide que los dos productos sean iguales
+            models.CheckConstraint(
+                check=~models.Q(product_a=models.F("product_b")),
+                name="product_a_not_equal_b",
+            )
+        ]
+
     def __str__(self):
-        return f'Review by {self.user} on {self.product.name}'
+        return f"{self.user} prefirió {self.preferred_product} sobre otro producto"
+
+    # ----------------------- Moderación -----------------------
 
     def moderate_review(self):
-        """
-        Lógica para moderar la reseña.
-        Si la reseña contiene lenguaje inapropiado, será rechazada.
-        Si no, será aprobada y se actualizará el puntaje Elo.
-        """
+        """Aprueba o rechaza la reseña y, si procede, actualiza Elo."""
         if self.body_contains_inappropriate_content():
-            self.status = 'Rechazada'
+            self.status = "Rechazada"
         else:
-            self.status = 'Aprobada'
+            self.status = "Aprobada"
             self.update_elo_score()
 
     def body_contains_inappropriate_content(self):
-        """
-        Verifica si la reseña contiene palabras inapropiadas.
-        Este es un ejemplo simple, puedes mejorar la lógica según tus necesidades.
-        """
-        prohibited_words = ["idiota", "estúpido", "inútil", "mierda", "basura"]
-        for word in prohibited_words:
-            if word in self.body.lower():
-                return True
-        return False
+        bad_words = {"idiota", "estúpido", "inútil", "mierda", "basura"}
+        return any(w in self.justification.lower() for w in bad_words)
+
+    # ----------------------- Elo -----------------------
 
     def update_elo_score(self):
-        """
-        Lógica para actualizar los puntajes Elo entre el producto y el competidor.
-        """
-        product = self.product
-        competitor = Product.objects.exclude(id=product.id).first()  # Solo un competidor disponible para comparar
+        """Aplica fórmula Elo entre los dos productos."""
+        winner = self.preferred_product
+        loser = self.product_b if winner == self.product_a else self.product_a
 
-        if not competitor:
-            return  # No hay competidor disponible, salir de la función
+        expected_w = 1 / (1 + pow(10, (loser.elo_score - winner.elo_score) / 400))
+        expected_l = 1 - expected_w
 
-        # Compara las reseñas y actualiza Elo
-        if self.rating > competitor.elo_score:
-            product.elo_score += 10
-            competitor.elo_score -= 10
-        else:
-            product.elo_score -= 10
-            competitor.elo_score += 10
+        winner.elo_score += K_FACTOR * (1 - expected_w)
+        loser.elo_score += K_FACTOR * (0 - expected_l)
 
-        # Guardar los cambios en los productos
-        product.save()
-        competitor.save()
+        winner.save(update_fields=["elo_score"])
+        loser.save(update_fields=["elo_score"])

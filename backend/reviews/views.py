@@ -1,48 +1,49 @@
 import json
 from django.http import JsonResponse
-from .models import Product, Review
 from django.views.decorators.csrf import csrf_exempt
+from .models import Product, Review
 
 @csrf_exempt
 def submit_review(request):
-    if request.method == 'POST':
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        print("Backend >>>", data)
+
+        a_id  = data.get('product_a_id')
+        b_id  = data.get('product_b_id')
+        pref  = data.get('preferred_id')
+        just  = data.get('justification', '')
+
+        # --- validaciones básicas ---
+        if not (a_id and b_id and pref):
+            return JsonResponse({'status': 'error', 'message': 'Faltan datos'}, status=400)
+        if a_id == b_id:
+            return JsonResponse({'status': 'error', 'message': 'Los productos deben ser distintos'}, status=400)
+        if pref not in (a_id, b_id):
+            return JsonResponse({'status': 'error', 'message': 'preferred_id debe ser uno de los dos productos'}, status=400)
+
+        # --- recuperar productos ---
         try:
-            # Leer el cuerpo del request y mostrar los datos recibidos
-            data = json.loads(request.body)
-            print("Datos recibidos en el backend:", data)
+            product_a = Product.objects.get(id=a_id)
+            product_b = Product.objects.get(id=b_id)
+        except Product.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Producto no encontrado'}, status=404)
 
-            product_id = data.get('product_id')
-            compare_product_id = data.get('compare_product_id')
-            review_text = data.get('review_text')
-            rating = data.get('rating')
+        # --- crear reseña ---
+        review = Review.objects.create(
+            product_a        = product_a,
+            product_b        = product_b,
+            preferred_product= Product.objects.get(id=pref),
+            user             = request.user,
+            justification    = just
+        )
 
-            # Validar que todos los datos estén presentes
-            if not product_id or not compare_product_id or not review_text or not rating:
-                return JsonResponse({'status': 'error', 'message': 'Faltan datos en la solicitud'}, status=400)
+        review.update_elo_score()
+        return JsonResponse({'status': 'ok'}, status=201)
 
-            # Obtener productos desde la base de datos
-            try:
-                product = Product.objects.get(id=product_id)
-                compare_product = Product.objects.get(id=compare_product_id)
-            except Product.DoesNotExist:
-                return JsonResponse({'status': 'error', 'message': 'Producto no encontrado'}, status=404)
-
-            # Crear la reseña
-            review = Review.objects.create(
-                product=product,
-                user=request.user,
-                title="Reseña comparativa",
-                body=review_text,
-                rating=rating
-            )
-
-            # Moderar la reseña y actualizar Elo
-            review.moderate_review()
-
-            return JsonResponse({'status': 'reseña procesada'}, status=200)
-
-        except Exception as e:
-            print(f"Error en backend: {e}")  # Log de error general
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-
-    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+    except Exception as e:
+        print("ERROR backend:", e)
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
