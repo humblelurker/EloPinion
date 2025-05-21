@@ -47,3 +47,17 @@ def submit_review(request):
     except Exception as e:
         print("ERROR backend:", e)
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+@csrf_exempt
+def report_review(request, review_id):
+    if request.method != "POST":
+        return JsonResponse({"detail": "Método no permitido"}, status=405)
+
+    try:
+        review = Review.objects.get(id=review_id)
+    except Review.DoesNotExist:
+        return JsonResponse({"detail": "Reseña no encontrada"}, status=404)
+
+    review.status = "Reportada"
+    review.save(update_fields=["status"])
+    return JsonResponse({"detail": "review reportada"})
