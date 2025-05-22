@@ -13,6 +13,7 @@ class Product(models.Model):
 
 
 class Review(models.Model):
+<<<<<<< HEAD
     product_a = models.ForeignKey(
         Product, related_name="reviews_as_a", on_delete=models.CASCADE
     )
@@ -25,6 +26,11 @@ class Review(models.Model):
         Product, related_name="wins", on_delete=models.CASCADE
     )
 
+=======
+    PROHIBITED_WORDS = {"idiota", "estúpido", "inútil", "mierda", "basura"}
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+>>>>>>> 69f7651 (Cleanup: remove unused files and optimize review submission logic)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     justification = models.TextField(blank=True)
     status = models.CharField(
@@ -50,13 +56,19 @@ class Review(models.Model):
     # ----------------------- Moderación -----------------------
 
     def moderate_review(self):
+<<<<<<< HEAD
         """Aprueba o rechaza la reseña y, si procede, actualiza Elo."""
         if self.body_contains_inappropriate_content():
             self.status = "Rechazada"
+=======
+        if self._contains_inappropriate_content():
+            self.status = 'Rechazada'
+>>>>>>> 69f7651 (Cleanup: remove unused files and optimize review submission logic)
         else:
             self.status = "Aprobada"
             self.update_elo_score()
 
+<<<<<<< HEAD
     def body_contains_inappropriate_content(self):
         bad_words = {"idiota", "estúpido", "inútil", "mierda", "basura"}
         return any(w in self.justification.lower() for w in bad_words)
@@ -76,3 +88,25 @@ class Review(models.Model):
 
         winner.save(update_fields=["elo_score"])
         loser.save(update_fields=["elo_score"])
+=======
+    def _contains_inappropriate_content(self):
+        text = self.body.lower()
+        return any(word in text for word in self.PROHIBITED_WORDS)
+
+    def update_elo_score(self):
+        product = self.product
+        competitor = Product.objects.exclude(id=product.id).first()
+
+        if not competitor:
+            return
+
+        if self.rating > competitor.elo_score:
+            product.elo_score += 10
+            competitor.elo_score -= 10
+        else:
+            product.elo_score -= 10
+            competitor.elo_score += 10
+
+        product.save()
+        competitor.save()
+>>>>>>> 69f7651 (Cleanup: remove unused files and optimize review submission logic)
