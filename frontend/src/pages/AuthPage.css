@@ -1,0 +1,57 @@
+/* Fuente Poppins ---------------------------------------------------------- */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
+
+html, body {
+  margin: 0;
+  height: 100%;
+}
+
+/* Contenedor que ocupa toda la pantalla con gradiente */
+.auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to top, #04040b 0%, #1e2038 100%);
+  font-family: "Poppins", sans-serif;
+  color: #fff;
+}
+
+/* Tarjeta semitransparente donde van los formularios */
+.auth-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(6px);
+  padding: 2rem 3rem;
+  border-radius: 12px;
+  width: 320px;
+}
+
+.auth-card h1 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.auth-card input {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  margin: 0.4rem 0 1rem;
+  border: none;
+  border-radius: 6px;
+}
+
+.auth-card button {
+  width: 100%;
+  padding: 0.6rem;
+  border: none;
+  border-radius: 6px;
+  background: #4f6af5;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-card button:hover {
+  opacity: 0.9;
+}

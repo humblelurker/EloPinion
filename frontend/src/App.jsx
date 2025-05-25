@@ -1,5 +1,6 @@
 /* frontend/src/App.jsx */
 import { useState } from 'react';
+import { Link } from 'react-router-dom';   // ← nuevo
 import Fuse from 'fuse.js';
 
 function App() {
@@ -58,6 +59,10 @@ function App() {
   /* ----------  UI  ---------- */
   return (
     <div className="container" style={{ padding: '1rem', fontFamily: 'sans-serif' }}>
+      {/* ENLACE A REGISTRO / LOGIN */}
+      <div style={{ marginBottom: '1rem' }}>
+        <Link to="/auth">Registrarse / Iniciar sesión</Link>
+      </div>
       {/* BUSCADOR */}
       <input
         type="text"

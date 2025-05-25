@@ -19,3 +19,19 @@
 - Lógica de puntuación Elo movida del modelo al servicio (principio de responsabilidad única).
 - Moderación de reseñas actualizada para usar `StatusChoices`.
 - Limpieza general del modelo `Review` y mejora de legibilidad.
+
+## [0.2.0] - 2025-05-25
+
+### Fixed
+- Importación de modelos en `backend/api/views.py` usaba una ruta errónea.
+- vista 'submit_review' duplicada en `backend/api/views.py` y `backend/reviews/views.py`; se eliminó este último archivo.
+
+### Changed
+- Cambio de posición de `backend/reviews/urls.py` a `backend/api/urls.py`.
+- Removida lógica de reseñas que use puntuaciones en vez de una preferencia en `backend/api/views.py`, `backend/reviews/models.py` y `backend/reviews/services/review_services.py`.
+
+### Added
+- Versión preliminar de página de registro/inicio en el frontend.
+- Instalación de React Router.
+
+

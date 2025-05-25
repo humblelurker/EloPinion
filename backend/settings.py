@@ -14,7 +14,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'backend.reviews',  # Asegúrate de que tu app de reseñas esté aquí
+    'backend.reviews',  # app de reseñas
+    'backend.auth', # login/registro
 ]
 
 MIDDLEWARE = [
