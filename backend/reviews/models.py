@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from math import pow
+from django.core.exceptions import ValidationError
 
 
 # ----------------------- Configuración -----------------------
@@ -28,13 +29,19 @@ class StatusChoices(models.TextChoices):
 # ----------------------- Modelos -----------------------
 class Product(models.Model):
     """
-    Producto que puede ser comparado en EloPinion.
+    Producto categorizado que se puede comparar en EloPinion
     """
-    name = models.CharField(max_length=255)
-    elo_score = models.IntegerField(default=1500)
+    CATEGORIES = [
+        ('pelicula',    'Película'),
+        ('serie',    'Serie'),
+        ('videojuego',  'Videojuego'),
+        ('restaurante', 'Restaurante'),
+        ('alimento', 'Alimento'),
+    ]
 
-    def __str__(self):
-        return self.name
+    name     = models.CharField(max_length=255)
+    category = models.CharField(max_length=20, choices=CATEGORIES, default='Película')
+    elo_score = models.IntegerField(default=1500)
 
 
 class Review(models.Model):
@@ -79,7 +86,7 @@ class Review(models.Model):
             models.CheckConstraint(
                 check=~models.Q(product_a=models.F("product_b")),
                 name="product_a_not_equal_b",
-            )
+            ),
         ]
 
     # ------------------ representaciones ------------------
@@ -108,4 +115,15 @@ class Review(models.Model):
         """
         text = self.justification.lower()
         return any(word in text for word in self.PROHIBITED_WORDS)
+    
+    def clean(self):
+        # Asegura que product_a y product_b tengan la misma categoría
+        if self.product_a.category != self.product_b.category:
+            raise ValidationError(
+                "Ambos productos deben pertenecer a la misma categoría"
+            )
 
+    def save(self, *args, **kwargs):
+        # Llama a full_clean() para ejecutar clean() antes de guardar
+        self.full_clean()
+        super().save(*args, **kwargs)

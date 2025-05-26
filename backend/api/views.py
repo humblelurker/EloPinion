@@ -8,13 +8,28 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 import json
 import logging
+from functools import wraps
 from backend.reviews.models import Product, Review
+from django.db.models import Count
+from random import sample
+from django.views.decorators.http import require_GET
+from django.views.decorators.csrf import csrf_exempt
 
 logger = logging.getLogger(__name__)
 
+def api_login_required(view):
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse(
+                {"detail": "Autenticación requerida"}, status=401
+            )
+        return view(request, *args, **kwargs)
+    return wrapper
 
 @require_POST
-@login_required
+@api_login_required
+@csrf_exempt
 def submit_review(request):
     """
     Recibe una reseña comparativa desde el frontend, valida los datos, guarda la reseña
@@ -60,15 +75,21 @@ def submit_review(request):
                 {"status": "error", "message": "preferred_id debe ser A o B"},
                 status=400,
             )
-
-        # -------- Obtener productos -----------------
+        
+        # Recupera los objetos Product
         try:
             product_a = Product.objects.get(id=product_a_id)
             product_b = Product.objects.get(id=product_b_id)
         except Product.DoesNotExist:
-            return JsonResponse(
-                {"status": "error", "message": "Producto no encontrado"}, status=404
-            )
+            return JsonResponse({"status":"error","message":"Producto no encontrado"}, status=404)
+
+        # Comprueba que estén en la misma categoría
+        if product_a.category != product_b.category:
+            return JsonResponse({
+                "status":"error",
+                "message":"Ambos productos deben ser de la misma categoría"
+            }, status=400)
+        
 
         preferred_product = product_a if preferred_id == product_a_id else product_b
 
@@ -101,3 +122,31 @@ def submit_review(request):
         return JsonResponse(
             {"status": "error", "message": "Error interno del servidor"}, status=500
         )
+    
+@require_GET
+def random_feed(request):
+    # trae hasta 10 reseñas al azar
+    ids = list(Review.objects.values_list("id", flat=True))
+    subset = sample(ids, min(len(ids), 10))
+    data = (
+        Review.objects.filter(id__in=subset)
+        .select_related("product_a", "product_b", "preferred_product", "user")
+        .values(
+            "id",
+            "product_a__name",
+            "product_b__name",
+            "preferred_product__name",
+            "user__username",
+            "justification",
+            "created_at",
+        )
+    )
+    return JsonResponse(list(data), safe=False)
+
+@require_GET
+def list_products(request):
+    """
+    Devuelve todos los productos con sus campos básicos.
+    """
+    qs = Product.objects.all().values("id", "name", "elo_score", "category")
+    return JsonResponse(list(qs), safe=False)

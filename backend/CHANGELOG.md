@@ -28,10 +28,22 @@
 
 ### Changed
 - Cambio de posición de `backend/reviews/urls.py` a `backend/api/urls.py`.
-- Removida lógica de reseñas que use puntuaciones en vez de una preferencia en `backend/api/views.py`, `backend/reviews/models.py` y `backend/reviews/services/review_services.py`.
+- Removida lógica de reseñas que usaba puntuaciones en vez de una preferencia en `backend/api/views.py`, `backend/reviews/models.py` y `backend/reviews/services/review_services.py`.
 
 ### Added
 - Versión preliminar de página de registro/inicio en el frontend.
 - Instalación de React Router.
 
+## [0.2.1] – 2025-05-26
+
+### Added
+- Se creó el endpoint `/api/feed/` y su componente React asociado para mostrar reseñas recientes con justificación.
+- El listado de productos en el frontend ahora consume datos reales desde `/api/products/`, mostrando ELO y categoría.
+- Se configuró proxy/CORS para habilitar las peticiones entre el cliente (5173) y el servidor (8000).
+
+### Fixed
+- Se corrigió el orden de recuperación y validación de `product_a` y `product_b` en la vista de envío de reseñas para evitar errores de variable sin definir.
+
+### Changed
+- Se unificarón los estilos de la página principal y de registro.
 
