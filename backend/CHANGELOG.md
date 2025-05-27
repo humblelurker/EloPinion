@@ -47,3 +47,8 @@
 ### Changed
 - Se unificarón los estilos de la página principal y de registro.
 
+## [0.2.2] – 2025-05-27
+
+### Changed
+- Cambio de estilos .css y lógica en la página principal
+

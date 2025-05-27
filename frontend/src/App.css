@@ -1,85 +1,193 @@
 /* Fuente Poppins ---------------------------------------------------------- */
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
 
-html, body {
+/* Aplicar Poppins globalmente */
+* {
+  font-family: "Poppins", sans-serif;
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  height: 100%;
+}
 
-  /* Gradiente estático en todo el fondo */
+html, body {
+  height: 100%;
   background: linear-gradient(to top, #04040b 0%, #1e2038 100%) no-repeat fixed;
-  font-family: "Poppins", sans-serif;
   color: #fff;
 }
 
-/* Contenedor general centrado (usado en AuthPage.css y aquí) */
-.auth-wrapper,
+/* Contenedor raíz */
 #root {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  max-width: 1280px;
-  margin: 0 auto;
   padding: 2rem;
-  box-sizing: border-box;
 }
 
-/* Divider común */
-.divider {
+/* Layout principal */
+.layout {
+  display: flex;
   width: 100%;
-  max-width: 500px;
-  margin: 2rem 0;
+  align-items: flex-start;
+}
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px; /* ligeramente más ancho */
+  height: 100vh;
+  background: rgba(0,0,0,0.4);
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.sidebar-logo {
+  width: 100%;
+  object-fit: contain;
+  margin-bottom: 2rem;
+}
+
+.sidebar nav a {
+  color: #fff; /* texto blanco */
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* Contenido principal */
+.content {
+  margin-left: 280px; /* ajustado al ancho del sidebar */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Filtro: categoría + búsqueda */
+.filter-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Dropdown de categoría */
+.category-select {
+  width: 100%;
+  padding: 0.6rem;
   border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  background: #fff;
+  color: #000; /* texto negro */
+  margin-bottom: 0.5rem;
 }
 
-/* Enlace registro/login */
-.read-the-docs a,
-.read-the-docs a:visited {
-  color: #fff;
-  text-decoration: underline;
-}
-
-/* Tarjetas genéricas para contenido */
-.card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(4px);
-  padding: 1.5rem;
-  border-radius: 8px;
+/* Barra de búsqueda */
+.search-input {
   width: 100%;
-  max-width: 500px;
+  padding: 0.6rem;
+  border: none;
+  border-radius: 6px;
   margin-bottom: 1rem;
-  box-sizing: border-box;
+}
+
+/* Asegurar que el espacio para filtros no se colapse */
+.filter-bar,
+.card-list {
+  min-height: 80px;
+}
+
+/* Cards de productos en grid fijo de 4 columnas */
+.card-list {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  width: 100%;
+}
+
+/* Tarjetas genéricas */
+.card {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(4px);
+  padding: 1rem;
+  border-radius: 8px;
   text-align: left;
 }
 
-/* Lista de cards (productos) */
-.card-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: center;
-  width: 100%;
+/* Tarjeta de producto */
+.product-card {
+  cursor: pointer;
+}
+.product-card.sel-a {
+  border: 2px solid #4f6af5;
+}
+.product-card.sel-b {
+  border: 2px solid #f54f6a;
 }
 
-/* Inputs y selects */
-input[type="text"],
-select,
-textarea {
-  width: 100%;
-  padding: 0.6rem 0.8rem;
-  margin-top: 0.5rem;
-  margin-bottom: 1rem;
+/* Texto de producto un poco más pequeño */
+.product-card strong {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+.product-card div {
+  font-size: 0.8rem;
+}
+
+/* Botón de reiniciar (mismo estilo que enviar) */
+.reset-btn {
+  background: #4f6af5;
+  color: #fff;
+  font-weight: 600;
   border: none;
   border-radius: 6px;
-  box-sizing: border-box;
+  padding: 0.6rem;
+  margin: 1rem 0;
+  cursor: pointer;
+}
+.reset-btn:hover {
+  opacity: 0.9;
 }
 
-/* Botones */
+/* Formulario de reseña */
+.review-form {
+  width: 100%;
+  max-width: 500px;
+  margin: 1rem 0;
+}
+.review-form h2 {
+  font-size: 1rem; /* texto más pequeño */
+  margin-bottom: 0.5rem;
+}
+.review-form textarea {
+  width: 100%;
+  padding: 0.6rem;
+  border: none;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+/* Feed de reseñas */
+.feed-section {
+  width: 100%;
+  max-width: 700px;
+  margin: 2rem 0;
+}
+
+/* Grupo de radios inline */
+.radio-group {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Botones generales */
 button {
-  display: block;
   width: 100%;
   padding: 0.6rem;
   background: #4f6af5;
@@ -89,31 +197,17 @@ button {
   border-radius: 6px;
   cursor: pointer;
 }
-
 button:hover {
   opacity: 0.9;
 }
 
-/* Grupo de radios en formulario */
-.radio-group {
-  display: flex;
-  gap: 2rem;
+/* Mensaje de estado */
+.status-msg {
+  font-weight: 600;
   margin-top: 0.5rem;
 }
 
-/* Search input específico */
-.search-input {
-  max-width: 400px;
-  margin: 0 auto 1rem;
-}
-
-/* Review form espaciado */
-.review-form {
-  margin-top: 2rem;
-}
-
-/* Centrar título en AuthPage y App */
+/* Centrar títulos */
 h1, h2 {
   text-align: center;
 }
-
