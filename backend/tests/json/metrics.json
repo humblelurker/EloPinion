@@ -1,0 +1,28 @@
+{
+  "reseñas": [
+    {
+      "producto": "Café Intenso",
+      "fecha": "2025-05-01",
+      "valoracion": 4,
+      "resultado": "ganó"
+    },
+    {
+      "producto": "Café Intenso",
+      "fecha": "2025-05-02",
+      "valoracion": 5,
+      "resultado": "perdió"
+    },
+    {
+      "producto": "Té Verde",
+      "fecha": "2025-05-01",
+      "valoracion": 3,
+      "resultado": "ganó"
+    },
+    {
+      "producto": "Té Verde",
+      "fecha": "2025-05-02",
+      "valoracion": 4,
+      "resultado": "ganó"
+    }
+  ]
+}

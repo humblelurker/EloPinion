@@ -4,20 +4,30 @@ Incluye validaciones, lógica de negocio y moderación de contenido mediante rev
 """
 
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+from functools import wraps
 import json
 import logging
-from functools import wraps
+from random import sample
 from backend.reviews.models import Product, Review
 from django.db.models import Count
-from random import sample
-from django.views.decorators.http import require_GET
-from django.views.decorators.csrf import csrf_exempt
+from backend.serializers import InformeRequestSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from ..utils.metrics import calcular_metricas
 
+# Configuración del logger para registrar errores y eventos importantes
 logger = logging.getLogger(__name__)
 
+# Decorador personalizado para requerir autenticación en vistas de la API
 def api_login_required(view):
+    """
+    Decorador que verifica si el usuario está autenticado antes de ejecutar la vista.
+    Si no está autenticado, retorna un error 401 (No autorizado).
+    """
     @wraps(view)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -32,22 +42,19 @@ def api_login_required(view):
 @csrf_exempt
 def submit_review(request):
     """
-    Recibe una reseña comparativa desde el frontend, valida los datos, guarda la reseña
-    y aplica moderación automática.
+    Vista para recibir y procesar una reseña comparativa de productos.
 
-    Requiere autenticación del usuario.
-
-    Espera un cuerpo JSON con:
+    Requiere autenticación del usuario y espera un cuerpo JSON con los siguientes campos:
     - product_a_id (int): ID del primer producto.
     - product_b_id (int): ID del segundo producto.
-    - preferred_id (int): ID del producto que el usuario prefiere.
-    - justification (str, opcional): texto que justifica la elección.
+    - preferred_id (int): ID del producto preferido por el usuario.
+    - justification (str, opcional): Texto justificando la elección.
 
     Retorna:
-    - 201 Created y estado de moderación si se procesó exitosamente.
-    - 400 Bad Request si faltan datos o el formato es inválido.
-    - 404 Not Found si alguno de los productos no existe.
-    - 500 Internal Server Error ante errores inesperados.
+    - 201 Created: Si la reseña fue procesada exitosamente.
+    - 400 Bad Request: Si faltan datos o el formato es inválido.
+    - 404 Not Found: Si alguno de los productos no existe.
+    - 500 Internal Server Error: Si ocurre un error inesperado.
     """
     try:
         # Parsear el cuerpo JSON de la petición
@@ -57,7 +64,7 @@ def submit_review(request):
         preferred_id = data.get("preferred_id")
         justification = data.get("justification", "").strip()
 
-        # -------- Validaciones ----------------------
+        # Validaciones de los datos recibidos
         if not all([product_a_id, product_b_id, preferred_id]):
             return JsonResponse(
                 {"status": "error", "message": "Faltan campos obligatorios"},
@@ -76,24 +83,24 @@ def submit_review(request):
                 status=400,
             )
         
-        # Recupera los objetos Product
+        # Recuperar los objetos Product desde la base de datos
         try:
             product_a = Product.objects.get(id=product_a_id)
             product_b = Product.objects.get(id=product_b_id)
         except Product.DoesNotExist:
-            return JsonResponse({"status":"error","message":"Producto no encontrado"}, status=404)
+            return JsonResponse({"status": "error", "message": "Producto no encontrado"}, status=404)
 
-        # Comprueba que estén en la misma categoría
+        # Validar que ambos productos pertenezcan a la misma categoría
         if product_a.category != product_b.category:
             return JsonResponse({
-                "status":"error",
-                "message":"Ambos productos deben ser de la misma categoría"
+                "status": "error",
+                "message": "Ambos productos deben ser de la misma categoría"
             }, status=400)
         
-
+        # Determinar cuál producto es el preferido
         preferred_product = product_a if preferred_id == product_a_id else product_b
 
-        # -------- Crear la reseña -------------------
+        # Crear la reseña en la base de datos
         review = Review.objects.create(
             product_a=product_a,
             product_b=product_b,
@@ -102,9 +109,10 @@ def submit_review(request):
             justification=justification,
         )
 
-        # -------- Moderación automática -------------
+        # Aplicar moderación automática a la reseña
         review.moderate_review()
 
+        # Retornar respuesta exitosa con el estado de moderación
         return JsonResponse(
             {
                 "status": "ok",
@@ -115,19 +123,28 @@ def submit_review(request):
         )
 
     except json.JSONDecodeError:
+        # Manejar errores de formato JSON
         return JsonResponse({"status": "error", "message": "JSON inválido"}, status=400)
 
     except Exception as e:
+        # Registrar errores inesperados y retornar un error genérico
         logger.exception("Error procesando la reseña")
         return JsonResponse(
             {"status": "error", "message": "Error interno del servidor"}, status=500
         )
-    
+
 @require_GET
 def random_feed(request):
-    # trae hasta 10 reseñas al azar
+    """
+    Vista para obtener un conjunto aleatorio de hasta 10 reseñas.
+
+    Retorna una lista de reseñas con información básica de los productos y el usuario.
+    """
+    # Obtener todos los IDs de las reseñas
     ids = list(Review.objects.values_list("id", flat=True))
+    # Seleccionar un subconjunto aleatorio de hasta 10 IDs
     subset = sample(ids, min(len(ids), 10))
+    # Consultar las reseñas seleccionadas y sus relaciones
     data = (
         Review.objects.filter(id__in=subset)
         .select_related("product_a", "product_b", "preferred_product", "user")
@@ -141,12 +158,38 @@ def random_feed(request):
             "created_at",
         )
     )
+    # Retornar las reseñas como una lista JSON
     return JsonResponse(list(data), safe=False)
 
 @require_GET
 def list_products(request):
     """
-    Devuelve todos los productos con sus campos básicos.
+    Vista para listar todos los productos disponibles con información básica.
+
+    Retorna una lista de productos con los campos:
+    - id
+    - name
+    - elo_score
+    - category
     """
     qs = Product.objects.all().values("id", "name", "elo_score", "category")
     return JsonResponse(list(qs), safe=False)
+
+class GenerarInformeView(APIView):
+    """
+    Vista basada en clases para generar un informe a partir de reseñas.
+
+    Procesa una lista de reseñas y calcula métricas utilizando la función `calcular_metricas`.
+    """
+    def post(self, request):
+        # Validar los datos de entrada utilizando un serializer
+        serializer = InformeRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        # Obtener las reseñas del cuerpo de la petición
+        reseñas = request.data.get("reseñas", [])
+        # Calcular métricas basadas en las reseñas
+        resultado = calcular_metricas(reseñas)
+        # Retornar el resultado como respuesta
+        return Response(resultado)
