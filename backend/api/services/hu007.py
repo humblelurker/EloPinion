@@ -1,7 +1,7 @@
 
 from collections import defaultdict
 from statistics import mean
-
+from datetime import datetime
 # ---- MÉTRICAS “dummy” para maqueta ---------------------------------
 def _filtrar_rango(reseñas, start=None, end=None):
     if not start and not end:
@@ -30,6 +30,7 @@ def calcular_metricas(reseñas, start_date=None, end_date=None, top_n=5):
     for r in reseñas:
         por_producto[r["producto"]].append(r["valoracion"])
 
+    
     promedios = [
         {"producto": p, "promedio": mean(vals)}
         for p, vals in por_producto.items()
