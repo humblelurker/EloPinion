@@ -5,19 +5,12 @@ Incluye validaciones, lógica de negocio y moderación de contenido mediante rev
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
-from django.conf import settings
 from functools import wraps
 import json
 import logging
 from random import sample
 from backend.reviews.models import Product, Review
-from django.db.models import Count
-from backend.serializers import InformeRequestSerializer
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from ..utils.metrics import calcular_metricas
 
 # Configuración del logger para registrar errores y eventos importantes
 logger = logging.getLogger(__name__)
@@ -174,22 +167,3 @@ def list_products(request):
     """
     qs = Product.objects.all().values("id", "name", "elo_score", "category")
     return JsonResponse(list(qs), safe=False)
-
-class GenerarInformeView(APIView):
-    """
-    Vista basada en clases para generar un informe a partir de reseñas.
-
-    Procesa una lista de reseñas y calcula métricas utilizando la función `calcular_metricas`.
-    """
-    def post(self, request):
-        # Validar los datos de entrada utilizando un serializer
-        serializer = InformeRequestSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-
-        # Obtener las reseñas del cuerpo de la petición
-        reseñas = request.data.get("reseñas", [])
-        # Calcular métricas basadas en las reseñas
-        resultado = calcular_metricas(reseñas)
-        # Retornar el resultado como respuesta
-        return Response(resultado)
