@@ -52,3 +52,11 @@
 ### Changed
 - Cambio de estilos .css y lógica en la página principal
 
+
+## [Unreleased]
+### Added
+- Se añadió `arquitecture.md` con la documentación detallada de la arquitectura del backend Django:
+  - Descripción general de arquitectura monolítica modular.
+  - Separación en capas por app (`views_hu`, `urls_hu`, `services`, etc.).
+  - Detalles de comunicación frontend-backend.
+  - Estándares de estructura por app.
