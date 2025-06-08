@@ -1,55 +1,51 @@
+"""
+Servicios para HU-007 · Generación de informes.
 
+• Ya no usa “valoración 1-5”.
+• Top N productos se basa en su puntaje Elo actual.
+• Evolución Elo = promedio mensual del Elo de todos los productos.
+"""
 from collections import defaultdict
-from statistics import mean
 from datetime import datetime
-# ---- MÉTRICAS “dummy” para maqueta ---------------------------------
-def _filtrar_rango(reseñas, start=None, end=None):
-    if not start and not end:
-        return reseñas
-    out = []
-    for r in reseñas:
-        date = r["fecha"]
-        if start and date < start:
-            continue
-        if end and date > end:
-            continue
-        out.append(r)
-    return out
+from django.db.models import Avg
+from backend.reviews.models import Product, Review
 
 
-def calcular_metricas(reseñas, start_date=None, end_date=None, top_n=5):
+def _promedio_mensual_elo():
     """
-    Agrega mini-métricas solicitadas:
-        • top productos por valoración media
-        • evolución promedio Elo mensual (MAQUETA)
+    Devuelve {'2025-05': 1480, '2025-06': 1502, ...}
+    Promedia el Elo de todos los productos al final de cada mes (último día disponible).
     """
-    reseñas = _filtrar_rango(reseñas, start_date, end_date)
-
-    # --- top productos ------------------------------------------------
-    por_producto = defaultdict(list)
-    for r in reseñas:
-        por_producto[r["producto"]].append(r["valoracion"])
-
-    
-    promedios = [
-        {"producto": p, "promedio": mean(vals)}
-        for p, vals in por_producto.items()
-    ]
-    top_productos = sorted(promedios, key=lambda x: x["promedio"], reverse=True)[:top_n]
-
-    # --- evolución Elo (fake, a partir de valoraciones promedio) ------
     por_mes = defaultdict(list)
-    for r in reseñas:
-        month_key = r["fecha"].strftime("%Y-%m")
-        por_mes[month_key].append(r["valoracion"])
 
-    elo_evolution = {
-        m: round(mean(vals), 2) * 240  # factor *240 → rango 0-1200 aprox.
-        for m, vals in sorted(por_mes.items())
-        
-    }
+    # se toman las fechas de última actualización de cada review
+    qs = Review.objects.filter(status="Aprobada").values("updated_at", "product_a__elo_score", "product_b__elo_score")
+    for row in qs:
+        month_key = row["updated_at"].strftime("%Y-%m")
+        por_mes[month_key].append(row["product_a__elo_score"])
+        por_mes[month_key].append(row["product_b__elo_score"])
 
-    return {
-        "top_productos": top_productos,
-        "elo_evolution": elo_evolution,
+    return {m: round(sum(vals) / len(vals), 2) for m, vals in sorted(por_mes.items())}
+
+
+def calcular_metricas(_, start_date=None, end_date=None, top_n=5):
+    """
+    Genera:
+        • top_products  – los N productos con mayor Elo.
+        • elo_evolution – dict mes→Elo promedio (todas las categorías).
+    Los parámetros start_date y end_date se dejan para futura ampliación.
+    """
+    top_qs = (
+        Product.objects
+        .order_by("-elo_score")
+        .values("name", "elo_score")[:top_n]
+    )
+    top_products = [
+        {"producto": p["name"], "elo": p["elo_score"]} for p in top_qs
+    ]
+
+    metrics = {
+        "top_products": top_products,
+        "elo_evolution": _promedio_mensual_elo(),
     }
+    return metrics

@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+from backend.reviews.models import UserProfile 
 
 User = get_user_model()
 
@@ -19,6 +20,7 @@ def register(request):
         return JsonResponse({"detail": "Ya existe usuario"}, status=400)
 
     user = User.objects.create_user(username=email, email=email, password=password)
+    UserProfile.objects.create(user=user)          # ← crea perfil por defecto
     return JsonResponse({"detail": "usuario creado", "id": user.id}, status=201)
 
 

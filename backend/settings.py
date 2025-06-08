@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     'backend.reviews',  # app de reseñas
     'backend.auth.apps.AccountsConfig', # login/registro
     'corsheaders',
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
