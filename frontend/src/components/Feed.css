@@ -1,0 +1,103 @@
+/* ---------- Feed.css ------------------------------------------------ */
+
+/* Mensaje de carga */
+.feed-loading {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+/* Lista de reseñas */
+.feed-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+/* Caja individual de reseña */
+.feed-item {
+  position: relative;                       /* para anclar botón reportar */
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(4px);
+  border-radius: 8px;
+  padding: 1rem 1.5rem 3.2rem;              /* bottom extra ⇒ botón */
+  margin-bottom: 1rem;
+  font-size: 0.92rem;
+}
+
+/* Encabezado “user prefirió X sobre Y” */
+.feed-header {
+  margin-bottom: 0.4rem;
+}
+
+/* Justificación en cursiva */
+.feed-justification {
+  margin: 0.3rem 0 0.6rem;
+  font-style: italic;
+  opacity: 0.9;
+}
+
+/* Indicador de comentarios desactivados */
+.feed-disabled {
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+/* Listado de comentarios existentes */
+.feed-comments {
+  margin-top: 0.6rem;
+  padding-left: 1rem;
+  font-size: 0.85rem;
+}
+
+/* ---------------- formulario de nuevo comentario ------------------- */
+.feed-form textarea {
+  width: 100%;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+  margin-top: 0.4rem;
+  resize: vertical;
+  font-family: inherit;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.feed-comment-btn {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.45rem 0;
+  background: #4f6af5;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.feed-comment-btn:hover {
+  opacity: 0.9;
+}
+
+/* ---------------- botón reportar (pequeño, esquina) ---------------- */
+.feed-report-btn {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.6rem;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.75rem;
+  background: transparent;
+  color: #ff6961;
+  border: 1px solid #ff6961;
+  border-radius: 4px;
+  cursor: pointer;
+  line-height: 1;
+  display: inline-block;
+  max-width: 100px; 
+}
+
+.feed-report-btn:hover {
+  opacity: 0.9;
+}
