@@ -1,9 +1,11 @@
-/* ---------- Feed.css ------------------------------------------------ */
+/* ---------- Feed.css -------------------------- */
 
 /* Mensaje de carga */
 .feed-loading {
   text-align: center;
-  margin: 1rem 0;
+  margin: 2rem 0;
+  font-size: 1rem;
+  color: #ccc;
 }
 
 /* Lista de reseñas */
@@ -12,92 +14,124 @@
   padding: 0;
   margin: 0;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 /* Caja individual de reseña */
 .feed-item {
-  position: relative;                       /* para anclar botón reportar */
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(4px);
-  border-radius: 8px;
-  padding: 1rem 1.5rem 3.2rem;              /* bottom extra ⇒ botón */
-  margin-bottom: 1rem;
-  font-size: 0.92rem;
+  position: relative;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  padding: 1.5rem;
+  font-size: 0.95rem;
+  color: #e0e0e0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s ease;
 }
 
-/* Encabezado “user prefirió X sobre Y” */
+.feed-item:hover {
+  transform: translateY(-3px);
+}
+
+/* Encabezado de preferencia */
 .feed-header {
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.feed-header b {
+  color: #ffffff;
 }
 
 /* Justificación en cursiva */
 .feed-justification {
-  margin: 0.3rem 0 0.6rem;
+  margin: 0.4rem 0 0.8rem;
   font-style: italic;
-  opacity: 0.9;
+  opacity: 0.85;
+  color: #ddd;
 }
 
-/* Indicador de comentarios desactivados */
+/* Comentarios desactivados */
 .feed-disabled {
   font-size: 0.8rem;
-  opacity: 0.6;
+  opacity: 0.5;
+  font-style: italic;
 }
 
-/* Listado de comentarios existentes */
+/* Comentarios existentes */
 .feed-comments {
-  margin-top: 0.6rem;
+  margin-top: 0.8rem;
   padding-left: 1rem;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.feed-comments li {
+  line-height: 1.4;
+  color: #ccc;
 }
 
 /* ---------------- formulario de nuevo comentario ------------------- */
 .feed-form textarea {
   width: 100%;
   border: none;
-  border-radius: 6px;
-  padding: 0.5rem 0.7rem;
-  margin-top: 0.4rem;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  margin-top: 0.5rem;
   resize: vertical;
   font-family: inherit;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   color: #fff;
+  outline: none;
+  font-size: 0.9rem;
+}
+
+.feed-form textarea::placeholder {
+  color: #aaa;
 }
 
 .feed-comment-btn {
   display: block;
   width: 100%;
-  margin-top: 0.5rem;
-  padding: 0.45rem 0;
-  background: #4f6af5;
+  margin-top: 0.6rem;
+  padding: 0.6rem 0;
+  background: linear-gradient(to right, #4f6af5, #5f87f5);
   color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  transition: background 0.3s ease;
 }
 
 .feed-comment-btn:hover {
-  opacity: 0.9;
+  background: linear-gradient(to right, #607af5, #7499f7);
 }
 
 /* ---------------- botón reportar (pequeño, esquina) ---------------- */
 .feed-report-btn {
-  position: absolute;
-  bottom: 0.5rem;
-  right: 0.6rem;
-  padding: 0.25rem 0.7rem;
-  font-size: 0.75rem;
-  background: transparent;
-  color: #ff6961;
-  border: 1px solid #ff6961;
-  border-radius: 4px;
-  cursor: pointer;
-  line-height: 1;
+  position: relative; /* cambia esto */
   display: inline-block;
-  max-width: 100px; 
+  margin-top: 0.6rem;
+  margin-left: auto;        /* lo empuja a la derecha */
+  font-size: 0.75rem;
+  padding: 0.35rem 0.8rem;
+  background: transparent;
+  color: #ff6b6b;
+  border: 1px solid #ff6b6b;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .feed-report-btn:hover {
-  opacity: 0.9;
+  background: #ff6b6b22;
+  color: #ff8a8a;
 }

@@ -1,7 +1,7 @@
-/* Fuente Poppins ---------------------------------------------------------- */
+/* Fuente Poppins */
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap");
 
-/* Aplicar Poppins globalmente */
+/* Reset + fuente */
 * {
   font-family: "Poppins", sans-serif;
   box-sizing: border-box;
@@ -11,8 +11,8 @@
 
 html, body {
   height: 100%;
-  background: linear-gradient(to top, #04040b 0%, #1e2038 100%) no-repeat fixed;
-  color: #fff;
+  background: linear-gradient(to top, #0b0c1a 0%, #1a1c33 100%) no-repeat fixed;
+  color: #f5f5f5;
 }
 
 /* Contenedor raíz */
@@ -28,6 +28,7 @@ html, body {
 .layout {
   display: flex;
   width: 100%;
+  max-width: 1400px;
   align-items: flex-start;
 }
 
@@ -36,13 +37,14 @@ html, body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 260px; /* ligeramente más ancho */
+  width: 240px;
   height: 100vh;
-  background: rgba(0,0,0,0.4);
-  padding: 2rem 1rem;
+  background: rgba(15, 15, 30, 0.95);
+  padding: 2rem 1.2rem;
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  border-right: 1px solid #2e314d;
 }
 
 .sidebar-logo {
@@ -52,162 +54,190 @@ html, body {
 }
 
 .sidebar nav a {
-  color: #fff; /* texto blanco */
+  color: #d4d8f0;
   text-decoration: none;
   font-weight: 600;
+  transition: color 0.3s;
+}
+.sidebar nav a:hover {
+  color: #4f6af5;
 }
 
 /* Contenido principal */
 .content {
-  margin-left: 280px; /* ajustado al ancho del sidebar */
+  margin-left: 260px;
   flex: 1;
+  padding: 1rem 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* Filtro: categoría + búsqueda */
-.filter-bar {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 400px;
-}
-
-/* Dropdown de categoría */
-.category-select {
-  width: 100%;
-  padding: 0.6rem;
-  border: none;
-  border-radius: 6px;
-  background: #fff;
-  color: #000; /* texto negro */
-  margin-bottom: 0.5rem;
-}
-
-/* Barra de búsqueda */
+/* Filtros */
+.category-select,
 .search-input {
   width: 100%;
-  padding: 0.6rem;
+  max-width: 500px;
+  padding: 0.7rem 1rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   margin-bottom: 1rem;
+  font-size: 1rem;
 }
 
-/* Asegurar que el espacio para filtros no se colapse */
-.filter-bar,
-.card-list {
-  min-height: 80px;
+.category-select {
+  background: #ffffff;
+  color: #111;
 }
 
-/* Cards de productos en grid fijo de 4 columnas */
+.search-input {
+  background: #fff;
+  color: #000;
+}
+
+/* Productos */
 .card-list {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.2rem;
   width: 100%;
+  margin-bottom: 2rem;
 }
 
-/* Tarjetas genéricas */
 .card {
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(4px);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
   padding: 1rem;
-  border-radius: 8px;
-  text-align: left;
+  border-radius: 10px;
+  transition: transform 0.2s, border 0.3s;
 }
 
-/* Tarjeta de producto */
+.card:hover {
+  transform: translateY(-4px);
+}
+
 .product-card {
   cursor: pointer;
-}
-.product-card.sel-a {
-  border: 2px solid #4f6af5;
-}
-.product-card.sel-b {
-  border: 2px solid #f54f6a;
+  border: 2px solid transparent;
 }
 
-/* Texto de producto un poco más pequeño */
+.product-card.sel-a {
+  border-color: #4f6af5;
+}
+
+.product-card.sel-b {
+  border-color: #f54f6a;
+}
+
 .product-card strong {
   display: block;
-  font-size: 0.9rem;
-  margin-bottom: 0.25rem;
-}
-.product-card div {
-  font-size: 0.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
 }
 
-/* Botón de reiniciar (mismo estilo que enviar) */
+.product-card div {
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+/* Botones */
+button,
 .reset-btn {
   background: #4f6af5;
   color: #fff;
   font-weight: 600;
   border: none;
-  border-radius: 6px;
-  padding: 0.6rem;
-  margin: 1rem 0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
   cursor: pointer;
+  font-size: 0.95rem;
+  transition: opacity 0.2s;
+  margin-top: 0.5rem;
 }
+button:hover,
 .reset-btn:hover {
-  opacity: 0.9;
+  opacity: 0.85;
 }
 
-/* Formulario de reseña */
+/* Botón de reportar */
+.report-btn {
+  background: transparent;
+  border: 1px solid #ff4f4f;
+  color: #ff4f4f;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.report-btn:hover {
+  background: #ff4f4f;
+  color: #fff;
+}
+
+/* Formulario */
 .review-form {
   width: 100%;
-  max-width: 500px;
-  margin: 1rem 0;
+  max-width: 600px;
+  background: rgba(255,255,255,0.05);
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-top: 1rem;
 }
+
 .review-form h2 {
-  font-size: 1rem; /* texto más pequeño */
-  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  margin-bottom: 0.8rem;
 }
+
 .review-form textarea {
   width: 100%;
   padding: 0.6rem;
   border: none;
   border-radius: 6px;
   margin-bottom: 1rem;
+  font-size: 0.9rem;
 }
 
-/* Feed de reseñas */
+/* Comentarios y feed */
 .feed-section {
   width: 100%;
-  max-width: 700px;
-  margin: 2rem 0;
+  max-width: 800px;
+  margin-top: 2rem;
 }
 
-/* Grupo de radios inline */
 .radio-group {
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
 }
 
-/* Botones generales */
-button {
-  width: 100%;
-  padding: 0.6rem;
-  background: #4f6af5;
-  color: #fff;
-  font-weight: 600;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-button:hover {
-  opacity: 0.9;
-}
-
-/* Mensaje de estado */
 .status-msg {
   font-weight: 600;
   margin-top: 0.5rem;
+  text-align: center;
 }
 
-/* Centrar títulos */
 h1, h2 {
   text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .layout {
+    flex-direction: column;
+  }
+  .sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    justify-content: space-between;
+    border-right: none;
+    border-bottom: 1px solid #2e314d;
+  }
+  .content {
+    margin-left: 0;
+    padding: 1rem;
+  }
 }
