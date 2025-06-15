@@ -90,7 +90,10 @@ export default function App() {
       <div className="layout">
         <aside className="sidebar">
           <img src={logoImg} alt="EloPinion" className="sidebar-logo" />
+          <nav><Link to="/">Inicio</Link></nav>
           <nav><Link to="/auth">Login / Registro</Link></nav>
+              {/* link visible sólo logeado */}
+          <nav>{logged && <Link to="/my-reviews">Mis reseñas</Link>}</nav>
         </aside>
 
         <main className="content">
@@ -110,7 +113,7 @@ export default function App() {
 
           {/* lista de productos */}
           <div className="card-list">
-            {filtered.slice(0,4).map(p => (
+            {filtered.slice(0,6).map(p => (
               <div key={p.id}
                    className={`card product-card ${a?.id===p.id?'sel-a':''} ${b?.id===p.id?'sel-b':''}`}
                    onClick={() => selectProd(p)}>

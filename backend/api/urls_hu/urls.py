@@ -7,7 +7,11 @@ URL-patterns para las HU alojadas en backend.api.views_hu
 """
 from django.urls import path
 from ..views_hu import views                       # reseñas, feed, etc.
-from ..views_hu.views import GenerarInformeView     # HU-007
+from ..views_hu.views import (
+    submit_review, random_feed, list_products,
+    my_reviews_feed,            
+    GenerarInformeView, whoami
+)   # HU-007
 from ..views_hu.comments_reports import (           # HU-004 y HU-002
     create_comment,
     create_report,
@@ -16,9 +20,9 @@ from ..views_hu.comments_reports import (           # HU-004 y HU-002
 
 urlpatterns = [
     # HU-003 reseñas
-    path("submit-review/", views.submit_review, name="submit_review"),
-    path("feed/",          views.random_feed,  name="feed"),
-    path("products/",      views.list_products, name="list_products"),
+    path("submit-review/", submit_review, name="submit_review"),
+    path("feed/",          random_feed,  name="feed"),
+    path("products/",      list_products, name="list_products"),
 
     # HU-004 comentarios
     path("comments/", create_comment, name="comment-create"),
@@ -32,4 +36,6 @@ urlpatterns = [
 
     # utilitario
     path("whoami/", views.whoami, name="whoami"),
+
+    path("my-reviews/", my_reviews_feed, name="my_reviews"),
 ]

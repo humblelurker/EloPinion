@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Feed.css";
 
-export default function Feed() {
+export default function Feed({ api = "/api/feed/" }) {
   const [items, setItems] = useState([]);
-  const [drafts, setDrafts] = useState({});          // texto x-reseña
+  const [drafts, setDrafts] = useState({});
   const navigate = useNavigate();
 
-  /* ─── carga inicial ───────────────────────────── */
+  /* ─── carga inicial ─────────────────────────── */
   useEffect(() => {
-    fetch("/api/feed/", { credentials: "include" })
+    fetch(api, { credentials: "include" })
       .then((r) => {
         if (r.status === 401) {
           navigate("/auth");
@@ -19,9 +19,9 @@ export default function Feed() {
       })
       .then(setItems)
       .catch(console.error);
-  }, []);
+  }, [api, navigate]);
 
-  /* ─── helpers ─────────────────────────────────── */
+  /* ─── helpers ───────────────────────────────── */
   const loserOf = (r) =>
     r.preferred_product === r.product_a ? r.product_b : r.product_a;
 
@@ -47,8 +47,6 @@ export default function Feed() {
       alert("Error al comentar");
       return;
     }
-
-    // añade el nuevo comentario al estado
     const newComment = await resp.json();
     setItems((arr) =>
       arr.map((r) =>
@@ -57,25 +55,23 @@ export default function Feed() {
           : r
       )
     );
-    handleDraft(reviewId, "");       // limpia textarea
+    handleDraft(reviewId, "");
   }
 
   async function reportReview(reviewId) {
-    const ok = window.confirm("¿Reportar esta reseña?");
-    if (!ok) return;
-
+    if (!window.confirm("¿Reportar esta reseña?")) return;
     const resp = await fetch("/api/reports/", {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ review: reviewId, reason: "" }),
     });
-    if (resp.ok) alert("Reporte enviado ✔");
-    else alert("Error al reportar");
+    alert(resp.ok ? "Reporte enviado ✔" : "Error al reportar");
   }
 
-  /* ─── render ──────────────────────────────────── */
-  if (!items.length) return <p className="feed-loading">Cargando feed…</p>;
+  /* ─── render ────────────────────────────────── */
+  if (!items.length)
+    return <p className="feed-loading">Cargando reseñas…</p>;
 
   return (
     <ul className="feed-list">
@@ -94,7 +90,7 @@ export default function Feed() {
             <span className="feed-disabled">Comentarios desactivados</span>
           )}
 
-          {/* comentarios renderizados */}
+          {/* comentarios existentes */}
           {r.comments?.length > 0 && (
             <ul className="feed-comments">
               {r.comments.map((c) => (
@@ -123,7 +119,6 @@ export default function Feed() {
             </div>
           )}
 
-          {/* botón reportar */}
           <button
             className="feed-report-btn"
             onClick={() => reportReview(r.id)}
