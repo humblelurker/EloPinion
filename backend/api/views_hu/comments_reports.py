@@ -1,20 +1,20 @@
 """
 Vistas HU-004 (comentarios) y HU-002 (reportes).
 
-• POST   /api/comments/          – crear comentario
-• POST   /api/reports/           – crear reporte
-• GET    /api/reports/           – listar reportes PENDIENTES (solo admin)
-• PATCH  /api/reports/<id>/      – admin aprueba / rechaza
+POST   /api/comments/          – crear comentario
+POST   /api/reports/           – crear reporte
+GET    /api/reports/           – listar reportes PENDIENTES (solo admin)
+PATCH  /api/reports/<id>/      – admin aprueba / rechaza
 """
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models            import Prefetch
 from rest_framework.decorators   import (
     api_view, permission_classes, authentication_classes
 )
 from rest_framework.permissions  import IsAuthenticated
 from rest_framework.response     import Response
 from rest_framework              import status
+from django.views.decorators.http import require_http_methods
 
 from backend.api.authentication  import CsrfExemptSessionAuthentication
 from backend.api.permissions.admin import IsEloAdmin
@@ -60,7 +60,15 @@ def create_comment(request):
 def create_report(request):
     """
     JSON → { "review": <id>, "reason": "..." }
+    No se permite que el autor reporte su propia reseña.
     """
+    review = get_object_or_404(Review, id=request.data.get("review"))
+    if review.user == request.user:
+        return Response(
+            {"detail": "No puedes reportar tu propia reseña."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
     ser = ReportSerializer(data=request.data)
     if ser.is_valid():
         ser.save(reporter=request.user)
@@ -70,10 +78,10 @@ def create_report(request):
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated, IsEloAdmin])   # ← solo admins
+@permission_classes([IsAuthenticated, IsEloAdmin])   # solo admins
 def list_reports(request):
     """
-    Devuelve SOLO los reportes con status = Pendiente
+    Devuelve únicamente los reportes con status = Pendiente
     """
     pending = (
         Report.objects
@@ -93,11 +101,12 @@ def list_reports(request):
 
 @csrf_exempt
 @api_view(["PATCH"])
-@permission_classes([IsAuthenticated, IsEloAdmin])   # ← solo admins
+@permission_classes([IsAuthenticated, IsEloAdmin])   # solo admins
 @authentication_classes([CsrfExemptSessionAuthentication])
 def moderate_report(request, pk):
     """
     JSON → { "status": "Aprobada" | "Rechazada" }
+    Si se marca como Aprobada, la reseña se elimina de la BD.
     """
     report = get_object_or_404(Report, pk=pk)
     new_status = request.data.get("status")
@@ -107,6 +116,11 @@ def moderate_report(request, pk):
             {"detail": "Estado inválido."},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+    # ───── lógica de aprobación ─────
+    if new_status == "Aprobada":
+        # borra la reseña (cascade elimina comentarios)
+        report.review.delete()
 
     report.status = new_status
     report.save(update_fields=["status"])

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link }   from "react-router-dom";
+import logoImg from '../assets/logo.png';
 
 export default function AdminReportsPage() {
   const [items, setItems] = useState([]);
@@ -45,8 +46,9 @@ export default function AdminReportsPage() {
   return (
     <div className="layout">
       <aside className="sidebar">
-        <Link to="/" className="sidebar-logo">🏠</Link>
+        <img src={logoImg} alt="EloPinion" className="sidebar-logo" />
         <nav><Link to="/">Inicio</Link></nav>
+        <nav><Link to="/auth">Login / Registro</Link></nav>
         <nav><Link to="/my-reviews">Mis reseñas</Link></nav>
         <nav><Link to="/moderate">Moderar reportes</Link></nav>
       </aside>

@@ -2,8 +2,19 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Feed.css";
 
-export default function Feed({ api = "/api/feed/" }) {
-  const [items, setItems] = useState([]);
+/**
+ * Props
+ * ─────────────────────────────────────────────────────────────
+ * api         – URL que devuelve las reseñas (por defecto /api/feed/)
+ * canDelete   – true  ⇒ muestra botón “Eliminar” y lo llama vía DELETE
+ * allowReport – false ⇒ oculta el botón “Reportar”
+ */
+export default function Feed({
+  api = "/api/feed/",
+  canDelete = false,
+  allowReport = true,
+}) {
+  const [items,  setItems]  = useState([]);
   const [drafts, setDrafts] = useState({});
   const navigate = useNavigate();
 
@@ -28,6 +39,7 @@ export default function Feed({ api = "/api/feed/" }) {
   const handleDraft = (id, text) =>
     setDrafts((d) => ({ ...d, [id]: text }));
 
+  /* ─── comentar ──────────────────────────────── */
   async function sendComment(reviewId) {
     const text = (drafts[reviewId] || "").trim();
     if (!text) return;
@@ -58,6 +70,7 @@ export default function Feed({ api = "/api/feed/" }) {
     handleDraft(reviewId, "");
   }
 
+  /* ─── reportar ──────────────────────────────── */
   async function reportReview(reviewId) {
     if (!window.confirm("¿Reportar esta reseña?")) return;
     const resp = await fetch("/api/reports/", {
@@ -67,6 +80,22 @@ export default function Feed({ api = "/api/feed/" }) {
       body: JSON.stringify({ review: reviewId, reason: "" }),
     });
     alert(resp.ok ? "Reporte enviado ✔" : "Error al reportar");
+  }
+
+  /* ─── eliminar propia ───────────────────────── */
+  async function deleteReview(reviewId) {
+    if (!window.confirm("¿Eliminar esta reseña? Esta acción es permanente.")) return;
+    const resp = await fetch(`/api/my-reviews/${reviewId}/`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    if (resp.status === 204) {
+      setItems((arr) => arr.filter((r) => r.id !== reviewId));
+    } else if (resp.status === 401) {
+      alert("Debes iniciar sesión");
+    } else {
+      alert("Error al eliminar reseña");
+    }
   }
 
   /* ─── render ────────────────────────────────── */
@@ -119,12 +148,26 @@ export default function Feed({ api = "/api/feed/" }) {
             </div>
           )}
 
-          <button
-            className="feed-report-btn"
-            onClick={() => reportReview(r.id)}
-          >
-            Reportar
-          </button>
+          {/* ─── acciones ─── */}
+          <div className="feed-actions">
+            {allowReport && (
+              <button
+                className="feed-report-btn"
+                onClick={() => reportReview(r.id)}
+              >
+                Reportar
+              </button>
+            )}
+
+            {canDelete && (
+              <button
+                className="feed-delete-btn"
+                onClick={() => deleteReview(r.id)}
+              >
+                Eliminar
+              </button>
+            )}
+          </div>
         </li>
       ))}
     </ul>

@@ -2,11 +2,12 @@
 Vistas centrales de la API (HU-001, HU-002, HU-003, HU-007).
 
 Funciones:
-• submit_review   – crea una reseña comparativa
-• list_products   – catálogo completo
-• random_feed     – hasta 10 reseñas aleatorias (con comentarios)
-• my_reviews_feed – reseñas del usuario autenticado      ← FIX
-• whoami          – utilidad sesión
+• submit_review      – crea una reseña comparativa
+• list_products      – catálogo completo
+• random_feed        – hasta 10 reseñas aleatorias (con comentarios)
+• my_reviews_feed    – reseñas del usuario autenticado
+• delete_my_review   – elimina una reseña propia
+• whoami             – utilidad sesión
 • GenerarInformeView – HU-007
 """
 import json, logging
@@ -16,7 +17,9 @@ from functools import wraps
 from django.http                  import JsonResponse, FileResponse
 from django.shortcuts             import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import (
+    require_GET, require_POST, require_http_methods
+)
 
 from rest_framework.views         import APIView
 from rest_framework.response      import Response
@@ -39,7 +42,7 @@ def api_login_required(view):
         return view(request, *args, **kwargs)
     return _wrap
 
-# ─────────────────────── HU-003: publicar reseña ───────────────────
+# ─────────────────────── HU-003: publicar reseña ──────────────────
 @require_POST
 @csrf_exempt
 @api_login_required
@@ -79,7 +82,7 @@ def submit_review(request):
         logger.exception("Error submit_review")
         return JsonResponse({"status":"error","message":str(e)}, status=500)
 
-# ───────────────────── catálogo de productos ──────────────────────
+# ───────────────────── catálogo de productos ─────────────────────
 @require_GET
 def list_products(request):
     qs = Product.objects.all().values("id", "name", "elo_score", "category")
@@ -98,15 +101,10 @@ def random_feed(request):
     data = ReviewPublicSerializer(qs, many=True).data
     return JsonResponse(data, safe=False)
 
-# ──────────────────── NUEVO: feed “mis reseñas” ───────────────────
+# ───────────────── feed “mis reseñas” ─────────────────────────────
 @require_GET
 @api_login_required
 def my_reviews_feed(request):
-    """
-    GET /api/my-reviews/ – devuelve hasta 50 reseñas creadas por el usuario.
-    El formato es idéntico al random_feed para que el componente <Feed/>
-    pueda reutilizarse sin cambios.
-    """
     qs = (Review.objects
           .filter(user=request.user)
           .select_related("product_a", "product_b", "preferred_product", "user")
@@ -114,6 +112,18 @@ def my_reviews_feed(request):
           .order_by("-created_at")[:50])
     data = ReviewPublicSerializer(qs, many=True).data
     return JsonResponse(data, safe=False)
+
+# ─────────────── eliminar reseña propia ──────────────────────────
+@require_http_methods(["DELETE"])
+@csrf_exempt                   # ←←← solución: desactiva CSRF
+@api_login_required
+def delete_my_review(request, pk):
+    """
+    DELETE /api/my-reviews/<pk>/ – borra la reseña si pertenece al usuario
+    """
+    review = get_object_or_404(Review, pk=pk, user=request.user)
+    review.delete()
+    return JsonResponse({"detail": "Review eliminada"}, status=204)
 
 # ───────────────────────── util debug ─────────────────────────────
 @require_GET
@@ -128,7 +138,7 @@ def whoami(request):
         })
     return JsonResponse({"detail": "no auth"}, status=401)
 
-# ─────────────────────── HU-007: informes ─────────────────────────
+# ─────────────────────–– HU-007: informes ────────────────────────
 class GenerarInformeView(APIView):
     permission_classes = []   # producción: [IsAdminUser]
 
