@@ -6,13 +6,15 @@ from rest_framework import serializers
 from backend.reviews.models import Review
 
 
-# ---------- HU-007: informe ---------- #
+# ---------- HU-007: informe ---------- ## TODO: Importar los modelos necesarios si se usan en el futuro
+
 class ReviewSimpleSerializer(serializers.Serializer):
     producto_a = serializers.CharField(max_length=100)
     producto_b = serializers.CharField(max_length=100)
     preferido  = serializers.CharField(max_length=100)
     fecha      = serializers.DateField(format="%Y-%m-%d",
                                        input_formats=["%Y-%m-%d"])
+
 
 
 class InformeRequestSerializer(serializers.Serializer):
