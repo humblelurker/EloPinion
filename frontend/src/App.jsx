@@ -7,13 +7,14 @@ import logoImg from './assets/logo.png';
 
 /* Comprueba sesión consultando al backend */
 const fetchLogin = () =>
-  fetch('/api/whoami/', { credentials: 'include' })
-    .then(r => r.ok)
-    .catch(() => false);
+  fetch("/api/whoami/", { credentials: "include" })
+    .then(r => r.ok ? r.json() : { is_admin:false })
+    .catch(() => ({ is_admin:false }));
 
 export default function App() {
   /* ---------- estado global ---------- */
   const [logged,      setLogged]      = useState(false);
+  const [isAdmin,     setIsAdmin]     = useState(false);
   const [products,    setProducts]    = useState([]);
   const [categories,  setCategories]  = useState([]);
   const [cat,         setCat]         = useState('');
@@ -29,7 +30,10 @@ export default function App() {
 
   /* ---------- carga inicial ---------- */
   useEffect(() => {
-    fetchLogin().then(setLogged);
+  fetchLogin().then(({ user, is_admin }) => {
+  setLogged(!!user);
+  setIsAdmin(is_admin);          // crea estado nuevo
+ });
 
     fetch('/api/products/')
       .then(r => r.json())
@@ -94,6 +98,7 @@ export default function App() {
           <nav><Link to="/auth">Login / Registro</Link></nav>
               {/* link visible sólo logeado */}
           <nav>{logged && <Link to="/my-reviews">Mis reseñas</Link>}</nav>
+          {isAdmin && <nav><Link to="/moderate">Moderar reportes</Link></nav>}
         </aside>
 
         <main className="content">

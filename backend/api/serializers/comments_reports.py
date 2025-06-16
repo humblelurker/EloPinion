@@ -5,7 +5,7 @@ from rest_framework import serializers
 from backend.reviews.models import Comment, Report, Review
 
 
-# ------------ Comentarios & Reportes -------------------------
+# ─────────── Comentarios & Reportes ──────────
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(read_only=True)
 
@@ -25,7 +25,24 @@ class ReportSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "reporter", "status", "created_at"]
 
 
-# ------------ Reseñas para el feed ---------------------------
+# Lista para el panel de moderación  (incluye datos de la reseña)
+class ReportListSerializer(serializers.ModelSerializer):
+    reviewer  = serializers.CharField(source="review.user.username")
+    productoA = serializers.CharField(source="review.product_a.name")
+    productoB = serializers.CharField(source="review.product_b.name")
+    ganador   = serializers.CharField(source="review.preferred_product.name")
+    reporter  = serializers.StringRelatedField()
+
+    class Meta:
+        model  = Report
+        fields = [
+            "id", "created_at",
+            "reviewer", "productoA", "productoB", "ganador",
+            "reporter", "reason", "status",
+        ]
+
+
+# ─────────── Reseñas para el feed ───────────
 class ReviewPublicSerializer(serializers.ModelSerializer):
     user              = serializers.StringRelatedField()
     product_a         = serializers.StringRelatedField()
@@ -39,7 +56,7 @@ class ReviewPublicSerializer(serializers.ModelSerializer):
             "id", "user",
             "product_a", "product_b", "preferred_product",
             "justification", "allow_comments",
-            "comments",                 # ← lista embebida
+            "comments",
             "created_at",
         ]
         read_only_fields = fields

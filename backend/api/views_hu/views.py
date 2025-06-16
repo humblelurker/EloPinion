@@ -119,8 +119,14 @@ def my_reviews_feed(request):
 @require_GET
 def whoami(request):
     if request.user.is_authenticated:
-        return JsonResponse({"user": request.user.username})
-    return JsonResponse({"detail":"no auth"}, status=401)
+        profile = getattr(request.user, "profile", None)
+        return JsonResponse({
+            "user": request.user.username,
+            "is_admin": bool(
+                request.user.is_superuser or (profile and profile.is_admin)
+            )
+        })
+    return JsonResponse({"detail": "no auth"}, status=401)
 
 # ─────────────────────── HU-007: informes ─────────────────────────
 class GenerarInformeView(APIView):

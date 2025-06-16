@@ -1,41 +1,34 @@
 """
-URL-patterns para las HU alojadas en backend.api.views_hu
-• HU-003  → reseñas / feed / productos
-• HU-004  → comentarios
-• HU-002  → reportar y moderar reseñas
-• HU-007  → informes
+URL-patterns para las HU en backend.api.views_hu
 """
 from django.urls import path
-from ..views_hu import views                       # reseñas, feed, etc.
-from ..views_hu.views import (
+from ..views_hu.views             import (
     submit_review, random_feed, list_products,
-    my_reviews_feed,            
-    GenerarInformeView, whoami
-)   # HU-007
-from ..views_hu.comments_reports import (           # HU-004 y HU-002
-    create_comment,
-    create_report,
-    moderate_report,
+    my_reviews_feed, GenerarInformeView, whoami
+)
+from ..views_hu.comments_reports  import (
+    create_comment, create_report,
+    moderate_report, list_reports      # ← NUEVA
 )
 
 urlpatterns = [
-    # HU-003 reseñas
+    # HU-003
     path("submit-review/", submit_review, name="submit_review"),
     path("feed/",          random_feed,  name="feed"),
     path("products/",      list_products, name="list_products"),
 
-    # HU-004 comentarios
+    # HU-004
     path("comments/", create_comment, name="comment-create"),
 
-    # HU-002 reportar reseñas
+    # HU-002
     path("reports/",          create_report,   name="report-create"),
+    path("reports/pending/",  list_reports,    name="report-list"),   # ← NUEVO
     path("reports/<int:pk>/", moderate_report, name="report-moderate"),
 
-    # HU-007 informes
+    # HU-007
     path("hu007/report/", GenerarInformeView.as_view(), name="hu007-report"),
 
-    # utilitario
-    path("whoami/", views.whoami, name="whoami"),
-
-    path("my-reviews/", my_reviews_feed, name="my_reviews"),
+    # utilitarios
+    path("whoami/",      whoami,          name="whoami"),
+    path("my-reviews/",  my_reviews_feed, name="my_reviews"),
 ]

@@ -1,30 +1,33 @@
 """
-Vistas HU-004 (comentarios)  y HU-002 (reportes).
+Vistas HU-004 (comentarios) y HU-002 (reportes).
 
-• POST /api/comments/          – crear comentario
-• POST /api/reports/           – crear reporte
-• PATCH /api/reports/<id>/     – admin aprueba / rechaza
+• POST   /api/comments/          – crear comentario
+• POST   /api/reports/           – crear reporte
+• GET    /api/reports/           – listar reportes PENDIENTES (solo admin)
+• PATCH  /api/reports/<id>/      – admin aprueba / rechaza
 """
-from django.shortcuts           import get_object_or_404
+from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.decorators  import (
+from django.db.models            import Prefetch
+from rest_framework.decorators   import (
     api_view, permission_classes, authentication_classes
 )
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response    import Response
-from rest_framework             import status
+from rest_framework.permissions  import IsAuthenticated
+from rest_framework.response     import Response
+from rest_framework              import status
 
-from backend.api.authentication import CsrfExemptSessionAuthentication
+from backend.api.authentication  import CsrfExemptSessionAuthentication
 from backend.api.permissions.admin import IsEloAdmin
 from backend.api.serializers.comments_reports import (
     CommentSerializer,
     ReportSerializer,
+    ReportListSerializer,
 )
 
 from backend.reviews.models import Review, Comment, Report
 
 
-# ------------------------------------------------------------------ #
+# ────────────────────────── Comentarios ──────────────────────────
 @csrf_exempt
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -49,7 +52,7 @@ def create_comment(request):
     return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# ------------------------------------------------------------------ #
+# ─────────────────────────── Reportes ────────────────────────────
 @csrf_exempt
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -66,10 +69,31 @@ def create_report(request):
     return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# ------------------------------------------------------------------ #
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, IsEloAdmin])   # ← solo admins
+def list_reports(request):
+    """
+    Devuelve SOLO los reportes con status = Pendiente
+    """
+    pending = (
+        Report.objects
+        .filter(status="Pendiente")
+        .select_related(
+            "review__product_a",
+            "review__product_b",
+            "review__preferred_product",
+            "review__user",
+            "reporter",
+        )
+        .order_by("-created_at")
+    )
+    data = ReportListSerializer(pending, many=True).data
+    return Response(data)
+
+
 @csrf_exempt
 @api_view(["PATCH"])
-@permission_classes([IsAuthenticated, IsEloAdmin])       # sólo admins
+@permission_classes([IsAuthenticated, IsEloAdmin])   # ← solo admins
 @authentication_classes([CsrfExemptSessionAuthentication])
 def moderate_report(request, pk):
     """
