@@ -3,18 +3,13 @@ Serializadores HU-007 (informes).
 Se eliminaron campos de valoración 1-5; se usa Elo.
 """
 from rest_framework import serializers
-from backend.reviews.models import Review
+# TODO: Importar los modelos necesarios si se usan en el futuro
 
-
-# ---------- HU-007: informe ---------- ## TODO: Importar los modelos necesarios si se usan en el futuro
-
-class ReviewSimpleSerializer(serializers.Serializer):
-    producto_a = serializers.CharField(max_length=100)
-    producto_b = serializers.CharField(max_length=100)
-    preferido  = serializers.CharField(max_length=100)
-    fecha      = serializers.DateField(format="%Y-%m-%d",
-                                       input_formats=["%Y-%m-%d"])
-
+class ReseñaSerializer(serializers.Serializer):
+    producto   = serializers.CharField(max_length=100)
+    fecha      = serializers.DateField(format="%Y-%m-%d", input_formats=["%Y-%m-%d"])
+    valoracion = serializers.IntegerField(min_value=1, max_value=5)
+    resultado  = serializers.ChoiceField(choices=["ganó", "perdió"])  # opcional
 
 
 class InformeRequestSerializer(serializers.Serializer):
