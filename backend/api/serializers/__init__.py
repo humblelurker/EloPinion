@@ -1,13 +1,13 @@
 from .hu007 import (
     InformeRequestSerializer,
-    ReviewSimpleSerializer,
+    # ReviewSimpleSerializer,
     ReviewPublicSerializer,
 )
 from .comments_reports import CommentSerializer, ReportSerializer
 
 __all__ = [
     "InformeRequestSerializer",
-    "ReviewSimpleSerializer",
+    # "ReviewSimpleSerializer",
     "ReviewPublicSerializer",
     "CommentSerializer",
     "ReportSerializer",

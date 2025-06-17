@@ -13,7 +13,7 @@ class ReseñaSerializer(serializers.Serializer):
 
 
 class InformeRequestSerializer(serializers.Serializer):
-    reseñas    = ReviewSimpleSerializer(many=True)
+    # reseñas    = ReviewSimpleSerializer(many=True)
     formato    = serializers.ChoiceField(choices=["json", "pdf", "csv"],
                                          default="json")
     start_date = serializers.DateField(required=False)
@@ -28,7 +28,7 @@ class ReviewPublicSerializer(serializers.ModelSerializer):
     preferred_product = serializers.StringRelatedField()
 
     class Meta:
-        model  = Review
+        # model  = Review
         fields = [
             "id", "user", "product_a", "product_b",
             "preferred_product", "justification",
