@@ -1,0 +1,39 @@
+
+
+
+.card {
+  max-width: 700px;
+  margin: 2rem auto;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+.card h2 {
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+  color: #333;
+  text-align: center;
+}
+
+.card label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: block;
+  color: #555;
+}
+
+.card select {
+  width: 100%;
+  padding: 0.6rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #f9f9f9;
+  font-size: 1rem;
+}
+
+canvas {
+  margin-top: 1rem;
+}

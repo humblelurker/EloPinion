@@ -32,46 +32,7 @@ html, body {
   align-items: flex-start;
 }
 
-/* Sidebar */
-.sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 240px;
-  height: 100vh;
-  background: rgba(15, 15, 30, 0.95);
-  padding: 2rem 1.2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  border-right: 1px solid #2e314d;
-}
 
-.sidebar-logo {
-  width: 100%;
-  object-fit: contain;
-  margin-bottom: 2rem;
-}
-
-.sidebar nav a {
-  color: #d4d8f0;
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.3s;
-}
-.sidebar nav a:hover {
-  color: #4f6af5;
-}
-
-/* Contenido principal */
-.content {
-  margin-left: 260px;
-  flex: 1;
-  padding: 1rem 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
 
 /* Filtros */
 .category-select,

@@ -1,9 +1,10 @@
 import './App.css';
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import Fuse from 'fuse.js';
 import Feed from './components/Feed.jsx';
 import logoImg from './assets/logo.png';
+import SideBar from './components/SideBar.jsx';
+import ReviewForm from './components/ReviewForm.jsx';
 
 /* Comprueba sesión consultando al backend */
 const fetchLogin = () =>
@@ -12,28 +13,32 @@ const fetchLogin = () =>
     .catch(() => ({ is_admin:false }));
 
 export default function App() {
-  /* ---------- estado global ---------- */
-  const [logged,      setLogged]      = useState(false);
-  const [isAdmin,     setIsAdmin]     = useState(false);
-  const [products,    setProducts]    = useState([]);
-  const [categories,  setCategories]  = useState([]);
-  const [cat,         setCat]         = useState('');
-  const [term,        setTerm]        = useState('');
+  /* ---------- estado global: autenticación ---------- */
+  const [logged,  setLogged]  = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  /* selección */
-  const [a, setA]      = useState(null);
-  const [b, setB]      = useState(null);
-  const [pref, setPref]= useState(null);
-  const [text, setText]= useState('');
-  const [allowC, setAC]= useState(true);
-  const [status, setStatus] = useState('');
+  /* ---------- estado global: productos ---------- */
+  const [products,   setProducts]   = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [cat,        setCat]        = useState('');
+  const [term,       setTerm]       = useState('');
+
+  /* ---------- estado global: selección de productos ---------- */
+  const [a,    setA]    = useState(null);
+  const [b,    setB]    = useState(null);
+
+  /* ---------- estado global: reseña ---------- */
+  const [pref,  setPref]  = useState(null);
+  const [text,  setText]  = useState('');
+  const [allowC,setAC]    = useState(true);
+  const [status,setStatus]= useState('');
 
   /* ---------- carga inicial ---------- */
   useEffect(() => {
-  fetchLogin().then(({ user, is_admin }) => {
-  setLogged(!!user);
-  setIsAdmin(is_admin);          // crea estado nuevo
- });
+    fetchLogin().then(({ user, is_admin }) => {
+      setLogged(!!user);
+      setIsAdmin(is_admin);
+    });
 
     fetch('/api/products/')
       .then(r => r.json())
@@ -51,6 +56,7 @@ export default function App() {
         .search(term).map(r => r.item)
     : available;
 
+  /* ---------- handlers ---------- */
   const selectProd = p => {
     if (!a) setA(p);
     else if (!b && p.id !== a.id) setB(p);
@@ -61,7 +67,6 @@ export default function App() {
     setText(''); setAC(true); setStatus('');
   };
 
-  /* ---------- submit ---------- */
   async function handleSubmit() {
     if (!a || !b || !pref) {
       setStatus('Completa la selección y elige favorito.');
@@ -92,15 +97,8 @@ export default function App() {
   return (
     <div id="root">
       <div className="layout">
-        <aside className="sidebar">
-          <img src={logoImg} alt="EloPinion" className="sidebar-logo" />
-          <nav><Link to="/">Inicio</Link></nav>
-          <nav><Link to="/auth">Login / Registro</Link></nav>
-              {/* link visible sólo logeado */}
-          <nav>{logged && <Link to="/my-reviews">Mis reseñas</Link>}</nav>
-          {isAdmin && <nav><Link to="/moderate">Moderar reportes</Link></nav>}
-        </aside>
-
+        
+        <SideBar logoImg={logoImg} logged={logged} isAdmin={isAdmin} />
         <main className="content">
           {/* categoría */}
           <select className="category-select"
@@ -133,27 +131,18 @@ export default function App() {
 
           {/* formulario (solo logeado) */}
           {logged && a && b && (
-            <div className="card review-form">
-              <h2>Prefiero…</h2>
-
-              <label className="radio-group">
-                <span><input type="radio" name="pref" value="A"
-                              checked={pref==='A'} onChange={()=>setPref('A')} /> {a.name}</span>
-                <span><input type="radio" name="pref" value="B"
-                              checked={pref==='B'} onChange={()=>setPref('B')} /> {b.name}</span>
-              </label>
-
-              <label style={{margin:".5rem 0", display:"block"}}>
-                <input type="checkbox" checked={allowC}
-                       onChange={e=>setAC(e.target.checked)} /> Permitir comentarios
-              </label>
-
-              <textarea rows={3} placeholder="Justificación (opcional)…"
-                        value={text} onChange={e=>setText(e.target.value)} />
-
-              <button onClick={handleSubmit}>Enviar reseña</button>
-              {status && <p className="status-msg">{status}</p>}
-            </div>
+            <ReviewForm
+              a={a}
+              b={b}
+              pref={pref}
+              setPref={setPref}
+              text={text}
+              setText={setText}
+              allowC={allowC}
+              setAC={setAC}
+              handleSubmit={handleSubmit}
+              status={status}
+            />
           )}
 
           {/* feed */}
