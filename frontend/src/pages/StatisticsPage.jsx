@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, LineElement, PointElement, LinearScale, Title, CategoryScale, Tooltip, Legend } from 'chart.js';
-import './StatisticsPage.css'; // Assuming you have a CSS file for styling
+import './StatisticsPage.css';
 ChartJS.register(LineElement, PointElement, LinearScale, Title, CategoryScale, Tooltip, Legend);
 
 const sampleProducts = [
@@ -52,7 +52,7 @@ export default function StatisticsPage() {
   };
 
   return (
-    <div className="card">
+    <div className="stats-card">
       <h2>Estadísticas</h2>
       <label>Selecciona un producto:</label>
       <select onChange={e => setSelected(Number(e.target.value))} value={selected}>
