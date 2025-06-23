@@ -27,6 +27,7 @@ from django.views.decorators.http import (
     require_POST,
     require_http_methods,
 )
+from django.db.models import Q
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -56,13 +57,20 @@ def api_login_required(view):
 @csrf_exempt
 @api_login_required
 def submit_review(request):
+    """
+    Crea la comparación entre dos productos.
+    • Persiste el flag allow_comments del formulario.
+    • Impide que el mismo usuario compare dos veces la misma pareja.
+    """
     try:
         data = json.loads(request.body or "{}")
         a_id = data.get("product_a_id")
         b_id = data.get("product_b_id")
         pref = data.get("preferred_id")
         justification = data.get("justification", "").strip()
+        allow_comments = bool(data.get("allow_comments", True))
 
+        # Validaciones básicas
         if not all([a_id, b_id, pref]):
             return JsonResponse(
                 {"status": "error", "message": "Faltan campos"}, status=400
@@ -83,6 +91,18 @@ def submit_review(request):
                 {"status": "error", "message": "Categorías distintas"}, status=400
             )
 
+        # ---- Bloqueo de duplicados (misma pareja, en cualquier orden) ----
+        dupe_exists = Review.objects.filter(user=request.user).filter(
+            Q(product_a_id=a_id, product_b_id=b_id)
+            | Q(product_a_id=b_id, product_b_id=a_id)
+        ).exists()
+        if dupe_exists:
+            return JsonResponse(
+                {"status": "error", "message": "Ya publicaste esta comparación"},
+                status=400,
+            )
+
+        # Creación
         preferred = prod_a if pref == a_id else prod_b
         review = Review.objects.create(
             product_a=prod_a,
@@ -90,6 +110,7 @@ def submit_review(request):
             preferred_product=preferred,
             user=request.user,
             justification=justification,
+            allow_comments=allow_comments,      # ← ahora se guarda
         )
         review.moderate_review()
         review.save(update_fields=["status"])
