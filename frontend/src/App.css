@@ -9,7 +9,8 @@
   padding: 0;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   background: linear-gradient(to top, #0b0c1a 0%, #1a1c33 100%) no-repeat fixed;
   color: #f5f5f5;
@@ -31,8 +32,6 @@ html, body {
   max-width: 1400px;
   align-items: flex-start;
 }
-
-
 
 /* Filtros */
 .category-select,
@@ -136,11 +135,13 @@ button:hover,
   color: #fff;
 }
 
-/* Formulario */
+/* Formulario de reseña */
 .review-form {
   width: 100%;
   max-width: 600px;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);  /* ← vuelve a translúcido */
+  backdrop-filter: blur(8px);
+  color: #f5f5f5;                         /* texto blanco */
   padding: 1.5rem;
   border-radius: 12px;
   margin-top: 1rem;
@@ -149,6 +150,11 @@ button:hover,
 .review-form h2 {
   font-size: 1.1rem;
   margin-bottom: 0.8rem;
+  color: #f5f5f5;                         /* evita gris heredado */
+}
+
+.review-form label {
+  color: #f5f5f5;                         /* asegura texto claro */
 }
 
 .review-form textarea {
@@ -158,6 +164,7 @@ button:hover,
   border-radius: 6px;
   margin-bottom: 1rem;
   font-size: 0.9rem;
+  color: #000;                            /* texto del usuario oscuro sobre fondo claro */
 }
 
 /* Comentarios y feed */
@@ -177,9 +184,11 @@ button:hover,
   font-weight: 600;
   margin-top: 0.5rem;
   text-align: center;
+  color: #f5f5f5;
 }
 
-h1, h2 {
+h1,
+h2 {
   text-align: center;
 }
 

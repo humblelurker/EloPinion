@@ -1,6 +1,4 @@
-
-
-
+/* Contenedor principal de la página de estadísticas */
 .stats-card {
   max-width: 700px;
   margin: 2rem auto;
@@ -10,21 +8,22 @@
   padding: 2rem;
 }
 
-.card h2 {
+/* Títulos y etiquetas — solo dentro de .stats-card */
+.stats-card h2 {
   margin-bottom: 1rem;
   font-size: 1.8rem;
   color: #333;
   text-align: center;
 }
 
-.card label {
+.stats-card label {
   font-weight: 500;
   margin-bottom: 0.5rem;
   display: block;
   color: #555;
 }
 
-.card select {
+.stats-card select {
   width: 100%;
   padding: 0.6rem;
   margin-bottom: 1.5rem;
@@ -34,6 +33,7 @@
   font-size: 1rem;
 }
 
+/* El lienzo del gráfico */
 canvas {
   margin-top: 1rem;
 }

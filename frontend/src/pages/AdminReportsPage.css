@@ -1,0 +1,36 @@
+/* Tarjeta del reporte */
+.report-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  padding: 1.2rem 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  color: #f5f5f5;
+  transition: transform 0.2s;
+}
+.report-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Botones Aprobar/Rechazar */
+.report-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.8rem;
+}
+.report-actions button {
+  background: #4f6af5;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+.report-actions button:hover {
+  opacity: 0.85;
+}
+.report-actions button:nth-child(2) {
+  background: #ff4f4f;
+}
