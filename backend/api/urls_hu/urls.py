@@ -3,7 +3,7 @@ URL-patterns para las HU en backend.api.views_hu
 """
 from django.urls import path
 from ..views_hu.views             import (
-    submit_review, random_feed, list_products,
+    submit_review, random_feed, personalized_feed, list_products,
     my_reviews_feed, delete_my_review, GenerarInformeView, whoami
 )
 from ..views_hu.comments_reports  import (
@@ -14,8 +14,9 @@ from ..views_hu.comments_reports  import (
 urlpatterns = [
     # HU-003
     path("submit-review/", submit_review, name="submit_review"),
-    path("feed/",          random_feed,  name="feed"),
-    path("products/",      list_products, name="list_products"),
+    path("feed/",               random_feed,        name="feed"),
+    path("feed/personalized/",  personalized_feed,  name="personalized_feed"),  # HU-009
+    path("products/",           list_products,      name="list_products"),
 
     # HU-004
     path("comments/", create_comment, name="comment-create"),
@@ -29,7 +30,7 @@ urlpatterns = [
     path("hu007/report/", GenerarInformeView.as_view(), name="hu007-report"),
 
     # utilitarios
-    path("whoami/",         whoami,             name="whoami"),
-    path("my-reviews/",     my_reviews_feed,    name="my_reviews"),
-    path("my-reviews/<int:pk>/", delete_my_review, name="my_review_delete"),
+    path("whoami/",            whoami,              name="whoami"),
+    path("my-reviews/",        my_reviews_feed,     name="my_reviews"),
+    path("my-reviews/<int:pk>/", delete_my_review,  name="my_review_delete"),
 ]
