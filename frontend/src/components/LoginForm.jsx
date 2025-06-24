@@ -18,6 +18,7 @@ export default function LoginForm({ onSuccess }) {
       <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="email" />
       <input value={pw} onChange={e=>setPw(e.target.value)} type="password" placeholder="contraseña" />
       <button onClick={handle}>Entrar</button>
+      <p>¿No tienes cuenta? <a href="/register">Regístrate aquí</a></p>
       {msg && <p>{msg}</p>}
     </div>
   );

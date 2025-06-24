@@ -10,50 +10,61 @@ from backend.reviews.models import UserProfile
 User = get_user_model()
 
 
-# ───────────────────────── registro ──────────────────────────
+# ──────────────────────── Registro ───────────────────────────
 @csrf_exempt
 def register(request):
     if request.method != "POST":
-        return JsonResponse({"detail": "Método no permitido"}, status=405)
+        return JsonResponse({"detail": "Método no permitido."}, status=405)
 
-    data = json.loads(request.body or "{}")
-    email, password = data.get("email"), data.get("password")
-
-    if not (email and password):
-        return JsonResponse({"detail": "Email y password requeridos"}, status=400)
-
-    # -------- validación de formato de email --------
     try:
-        validate_email(email)
-    except DjangoValidationError:
-        return JsonResponse({"detail": "Formato de email inválido"}, status=400)
-    # -------------------------------------------------
+        data = json.loads(request.body or "{}")
+        email = data.get("email")
+        password = data.get("password")
 
-    if User.objects.filter(username=email).exists():
-        return JsonResponse({"detail": "Ya existe usuario"}, status=400)
+        if not email or not password:
+            return JsonResponse({"detail": "Se requieren email y contraseña."}, status=400)
 
-    user = User.objects.create_user(username=email, email=email, password=password)
-    UserProfile.objects.create(user=user)          # crea perfil por defecto
-    return JsonResponse({"detail": "usuario creado", "id": user.id}, status=201)
+        try:
+            validate_email(email)
+        except DjangoValidationError:
+            return JsonResponse({"detail": "Formato de email inválido."}, status=400)
+
+        if User.objects.filter(username=email).exists():
+            return JsonResponse({"detail": "El usuario ya existe."}, status=400)
+
+        user = User.objects.create_user(username=email, email=email, password=password)
+        UserProfile.objects.create(user=user)
+
+        return JsonResponse({
+            "detail": "Usuario registrado exitosamente.",
+            "user": {
+                "id": user.id,
+                "email": user.email
+            }
+        }, status=201)
+
+    except Exception as e:
+        return JsonResponse({"detail": "Error inesperado al registrar usuario.", "error": str(e)}, status=500)
 
 
-# ───────────────────────── login ─────────────────────────────
+# ───────────────────────── Login ─────────────────────────────
 @csrf_exempt
 def login_view(request):
     if request.method != "POST":
-        return JsonResponse({"detail": "Método no permitido"}, status=405)
+        return JsonResponse({"detail": "Método no permitido."}, status=405)
 
     data = json.loads(request.body or "{}")
     email, password = data.get("email"), data.get("password")
+
     user = authenticate(request, username=email, password=password)
     if user is None:
-        return JsonResponse({"detail": "Credenciales incorrectas"}, status=401)
+        return JsonResponse({"detail": "Credenciales inválidas."}, status=401)
 
     login(request, user)
-    return JsonResponse({"detail": "ok", "user": user.username})
+    return JsonResponse({"detail": "Inicio de sesión exitoso.", "user": user.username})
 
 
-# ──────────────────────── logout ─────────────────────────────
+# ───────────────────────── Logout ────────────────────────────
 def logout_view(request):
     logout(request)
-    return JsonResponse({"detail": "sesión cerrada"})
+    return JsonResponse({"detail": "Sesión cerrada correctamente."})

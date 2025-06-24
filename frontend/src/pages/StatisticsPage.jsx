@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, LineElement, PointElement, LinearScale, Title, CategoryScale, Tooltip, Legend } from 'chart.js';
+import SideBar from '../components/SideBar.jsx';
+import logoImg from '../assets/logo.png';
 import './StatisticsPage.css';
 ChartJS.register(LineElement, PointElement, LinearScale, Title, CategoryScale, Tooltip, Legend);
 
@@ -52,40 +54,45 @@ export default function StatisticsPage() {
   };
 
   return (
-    <div className="stats-card">
-      <h2>Estadísticas</h2>
-      <label>Selecciona un producto:</label>
-      <select onChange={e => setSelected(Number(e.target.value))} value={selected}>
-        {sampleProducts.map(p => (
-          <option key={p.id} value={p.id}>{p.name}</option>
-        ))}
-      </select>
-      <Line data={chartData} options={chartOptions} />
-      <h3 style={{ marginTop: '2rem' }}>Top productos</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem' }}>
+    <div className="layout">
+      <SideBar logoImg={logoImg} logged={false} isAdmin={false} />
+      <main className="content">
+        <div className="stats-card">
+          <h2>Estadísticas</h2>
+          <label>Selecciona un producto:</label>
+          <select onChange={e => setSelected(Number(e.target.value))} value={selected}>
+            {sampleProducts.map(p => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+          <Line data={chartData} options={chartOptions} />
+          <h3 style={{ marginTop: '2rem' }}>Top productos</h3>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem' }}>
             <thead>
-            <tr style={{ background: '#000' }}>
+              <tr style={{ background: '#000' }}>
                 <th style={{ padding: '0.5rem', textAlign: 'left', color: '#fff' }}>#</th>
                 <th style={{ padding: '0.5rem', textAlign: 'left', color: '#fff' }}>Nombre</th>
                 <th style={{ padding: '0.5rem', textAlign: 'left', color: '#fff' }}>Elo</th>
                 <th style={{ padding: '0.5rem', textAlign: 'left', color: '#fff' }}>Categoría</th>
-            </tr>
+              </tr>
             </thead>
             <tbody>
-            {[
+              {[
                 { name: 'Producto A', elo: 1280, cat: 'Bebidas' },
                 { name: 'Producto B', elo: 1140, cat: 'Snacks' },
                 { name: 'Producto C', elo: 1095, cat: 'Limpieza' },
-            ].map((p, i) => (
+              ].map((p, i) => (
                 <tr key={i} style={{ borderTop: '1px solid #eee', backgroundColor: '#fff', color: '#222' }}>
-                <td style={{ padding: '0.5rem' }}>{i + 1}</td>
-                <td style={{ padding: '0.5rem' }}>{p.name}</td>
-                <td style={{ padding: '0.5rem' }}>{p.elo}</td>
-                <td style={{ padding: '0.5rem' }}>{p.cat}</td>
+                  <td style={{ padding: '0.5rem' }}>{i + 1}</td>
+                  <td style={{ padding: '0.5rem' }}>{p.name}</td>
+                  <td style={{ padding: '0.5rem' }}>{p.elo}</td>
+                  <td style={{ padding: '0.5rem' }}>{p.cat}</td>
                 </tr>
-            ))}
+              ))}
             </tbody>
-        </table>
+          </table>
+        </div>
+      </main>
     </div>
   );
 }

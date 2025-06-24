@@ -1,55 +1,33 @@
 import "./App.css";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Fuse from "fuse.js";
-import Feed from "./components/Feed.jsx";
 import logoImg from "./assets/logo.png";
 import SideBar from "./components/SideBar.jsx";
+import ImageGallery from "./components/ImageGallery.jsx";
 import ReviewForm from "./components/ReviewForm.jsx";
-
-/* Comprueba sesión consultando al backend */
-const fetchLogin = () =>
-  fetch("/api/whoami/", { credentials: "include" })
-    .then((r) => (r.ok ? r.json() : { is_admin: false }))
-    .catch(() => ({ is_admin: false }));
+import ProductFilters from "./components/ProductFilters.jsx";
+import ProductSelector from "./components/ProductSelector.jsx";
+import FeedSection from "./components/FeedSection.jsx";
+import useAuth from "./hooks/useAuth.js";
+import useProducts from "./hooks/useProducts.js";
 
 export default function App() {
-  /* ---------- estado global: autenticación ---------- */
-  const [logged, setLogged] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { user } = useAuth();
+  const logged = !!user;
+  const isAdmin = user?.is_admin ?? false;
+  const { products, categories } = useProducts();
 
-  /* ---------- estado global: productos ---------- */
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [cat, setCat] = useState("");
   const [term, setTerm] = useState("");
 
-  /* ---------- estado global: selección de productos ---------- */
   const [a, setA] = useState(null);
   const [b, setB] = useState(null);
 
-  /* ---------- estado global: reseña ---------- */
   const [pref, setPref] = useState(null);
   const [text, setText] = useState("");
   const [allowC, setAC] = useState(true);
   const [status, setStatus] = useState("");
 
-  /* ---------- carga inicial ---------- */
-  useEffect(() => {
-    fetchLogin().then(({ user, is_admin }) => {
-      setLogged(!!user);
-      setIsAdmin(is_admin);
-    });
-
-    fetch("/api/products/")
-      .then((r) => r.json())
-      .then((data) => {
-        setProducts(data);
-        setCategories([...new Set(data.map((p) => p.category))]);
-      })
-      .catch(console.error);
-  }, []);
-
-  /* ---------- helpers ---------- */
   const available = products.filter((p) => !cat || p.category === cat);
   const filtered = term
     ? new Fuse(available, { keys: ["name"], threshold: 0.3 })
@@ -57,7 +35,6 @@ export default function App() {
         .map((r) => r.item)
     : available;
 
-  /* ---------- handlers ---------- */
   const selectProd = (p) => {
     if (!a) setA(p);
     else if (!b && p.id !== a.id) setB(p);
@@ -103,54 +80,34 @@ export default function App() {
     }
   }
 
-  /* ---------- UI ---------- */
   return (
     <div id="root">
       <div className="layout">
-        <SideBar logoImg={logoImg} logged={logged} isAdmin={isAdmin} />
-
+        <SideBar
+          logoImg={logoImg}
+          logged={logged}
+          isAdmin={isAdmin}
+        />
         <main className="content">
-          {/* categoría */}
-          <select
-            className="category-select"
-            value={cat}
-            onChange={(e) => {
-              setCat(e.target.value);
+          <ProductFilters
+            categories={categories}
+            selectedCat={cat}
+            onCategoryChange={(val) => {
+              setCat(val);
               resetForm();
             }}
-          >
-            <option value="">— Elige categoría —</option>
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-
-          {/* búsqueda */}
-          <input
-            className="search-input"
-            placeholder="Buscar producto…"
-            value={term}
-            onChange={(e) => setTerm(e.target.value)}
+            searchTerm={term}
+            onSearchChange={setTerm}
           />
 
-          {/* lista de productos */}
-          <div className="card-list">
-            {filtered.slice(0, 6).map((p) => (
-              <div
-                key={p.id}
-                className={`card product-card ${
-                  a?.id === p.id ? "sel-a" : ""
-                } ${b?.id === p.id ? "sel-b" : ""}`}
-                onClick={() => selectProd(p)}
-              >
-                <strong>{p.name}</strong>
-                <div>Elo {p.elo_score}</div>
-                <div>{p.category}</div>
-              </div>
-            ))}
-          </div>
+          <ImageGallery />
+
+          <ProductSelector
+            products={filtered.slice(0, 6)}
+            selectedA={a}
+            selectedB={b}
+            onSelect={selectProd}
+          />
 
           {(a || b) && (
             <button className="reset-btn" onClick={resetForm}>
@@ -158,7 +115,6 @@ export default function App() {
             </button>
           )}
 
-          {/* formulario (solo logeado) */}
           {logged && a && b && (
             <ReviewForm
               a={a}
@@ -174,13 +130,7 @@ export default function App() {
             />
           )}
 
-          {/* feed */}
-          <section className="feed-section">
-            <Feed
-              api={logged ? "/api/feed/personalized/" : "/api/feed/"}
-              logged={logged}
-            />
-          </section>
+          <FeedSection logged={logged} />
         </main>
       </div>
     </div>
